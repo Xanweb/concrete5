@@ -358,6 +358,7 @@ class Controller extends BlockController
         if ($qsID == 0) {
             throw new Exception(t("Oops, something is wrong with the form you posted (it doesn't have a question set id)."));
         }
+        $errors = [];
 
         $token = Core::make('token');
         if (!$token->validate('form_block_submit_qs_' . $qsID)) {
@@ -613,9 +614,7 @@ class Controller extends BlockController
 
             if (!$this->noSubmitFormRedirect) {
                 $targetPage = null;
-                if ($this->redirectCID == HOME_CID) {
-                    $targetPage = Page::getByID(HOME_CID);
-                } elseif ($this->redirectCID > 0) {
+                if ($this->redirectCID > 0) {
                     $pg = Page::getByID($this->redirectCID);
                     if (is_object($pg) && $pg->cID) {
                         $targetPage = $pg;

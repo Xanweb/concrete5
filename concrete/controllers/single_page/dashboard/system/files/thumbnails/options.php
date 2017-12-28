@@ -1,12 +1,14 @@
 <?php
+
 namespace Concrete\Controller\SinglePage\Dashboard\System\Files\Thumbnails;
 
-use Concrete\Core\Page\Controller\DashboardPageController;
-use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\File\Image\Thumbnail\ThumbnailFormatService;
 use Concrete\Core\Http\Response;
+use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\Page\Controller\DashboardPageController;
 use Exception;
-use Throwable;
 use Imagine\Image\Box;
+use Throwable;
 
 class Options extends DashboardPageController
 {
@@ -16,10 +18,15 @@ class Options extends DashboardPageController
         $this->set('thumbnail_generation_strategies', $this->getThumbnailGenerationStrategies());
         $this->set('thumbnail_generation_strategy', $config->get('concrete.misc.basic_thumbnailer_generation_strategy'));
         $this->set('thumbnail_formats', $this->getThumbnailsFormats());
-        $this->set('thumbnail_format', $config->get('concrete.misc.default_thumbnail_format'));
+        $thumbnail_format = $config->get('concrete.misc.default_thumbnail_format');
+        if ($thumbnail_format === 'jpg') {
+            $thumbnail_format = ThumbnailFormatService::FORMAT_JPEG;
+        }
+        $this->set('thumbnail_format', $thumbnail_format);
         $this->set('jpeg_compression', $config->get('concrete.misc.default_jpeg_image_compression'));
         $this->set('png_compression', $config->get('concrete.misc.default_png_image_compression'));
         $this->set('manipulation_library', $config->get('concrete.file_manager.images.manipulation_library'));
+        $this->set('create_high_dpi_thumbnails', $config->get('concrete.file_manager.images.create_high_dpi_thumbnails'));
         $this->set('manipulation_libraries', $this->getManipulationLibraries());
     }
 
@@ -47,12 +54,14 @@ class Options extends DashboardPageController
             if (!array_key_exists($manipulation_library, $this->getManipulationLibraries())) {
                 $this->error->add(t('Invalid image manipulation library'));
             }
+            $create_high_dpi_thumbnails = $this->request->request('create_high_dpi_thumbnails', 0);
             if (!$this->error->has()) {
                 $config->save('concrete.misc.basic_thumbnailer_generation_strategy', $thumbnail_generation_strategy);
                 $config->save('concrete.misc.default_thumbnail_format', $thumbnail_format);
                 $config->save('concrete.misc.default_jpeg_image_compression', $jpeg_compression);
                 $config->save('concrete.misc.default_png_image_compression', $png_compression);
                 $config->save('concrete.file_manager.images.manipulation_library', $manipulation_library);
+                $config->save('concrete.file_manager.images.create_high_dpi_thumbnails', $create_high_dpi_thumbnails);
                 $this->flash('message', t('Thumbnail options have been successfully saved.'));
                 $this->redirect($this->app->make('url/manager')->resolve(['/dashboard/system/files/thumbnails']));
             }
@@ -60,31 +69,6 @@ class Options extends DashboardPageController
             $this->error->add($this->token->getErrorMessage());
             $this->view();
         }
-    }
-
-    protected function getThumbnailGenerationStrategies()
-    {
-        return [
-            'now' => t('Create the thumbnails synchronously (may fail with out-of-memory errors)'),
-            'async' => t('Create the thumbnails asynchronously (users may not see thumbnails immediately)'),
-        ];
-    }
-
-    protected function getThumbnailsFormats()
-    {
-        return [
-            'png' => t('Always create PNG thumbnails (slightly bigger file size, transparency is kept)'),
-            'jpg' => t('Always create JPEG thumbnails (slightly smaller file size, transparency is not available)'),
-            'auto' => t('Automatic: create a JPEG thumbnail if the source image is in JPEG format, otherwise create a PNG thumbnail'),
-        ];
-    }
-
-    protected function getManipulationLibraries()
-    {
-        return [
-            'gd' => t('GD Library: faster, available in almost any environment, but less powerful'),
-            'imagick' => t('ImageMagick Library: much more powerful, but often not available or misconfigured'),
-        ];
     }
 
     public function test_manipulation_library($handle, $token)
@@ -112,5 +96,30 @@ class Options extends DashboardPageController
         }
 
         return $response;
+    }
+
+    protected function getThumbnailGenerationStrategies()
+    {
+        return [
+            'now' => t('Create the thumbnails synchronously (may fail with out-of-memory errors)'),
+            'async' => t('Create the thumbnails asynchronously (users may not see thumbnails immediately)'),
+        ];
+    }
+
+    protected function getThumbnailsFormats()
+    {
+        return [
+            ThumbnailFormatService::FORMAT_PNG => t('Always create PNG thumbnails (slightly bigger file size, transparency is kept)'),
+            ThumbnailFormatService::FORMAT_JPEG => t('Always create JPEG thumbnails (slightly smaller file size, transparency is not available)'),
+            ThumbnailFormatService::FORMAT_AUTO => t('Automatic: create a JPEG thumbnail if the source image is in JPEG format, otherwise create a PNG thumbnail'),
+        ];
+    }
+
+    protected function getManipulationLibraries()
+    {
+        return [
+            'gd' => t('GD Library: faster, available in almost any environment, but less powerful'),
+            'imagick' => t('ImageMagick Library: much more powerful, but often not available or misconfigured'),
+        ];
     }
 }

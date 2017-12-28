@@ -35,6 +35,7 @@ use Block;
 use UserInfo;
 use PageType;
 use PageTheme;
+use Concrete\Core\Localization\Locale\Service as LocaleService;
 use Concrete\Core\Permission\Key\PageKey as PagePermissionKey;
 use Concrete\Core\Permission\Access\Access as PermissionAccess;
 use Concrete\Core\Package\PackageList;
@@ -42,6 +43,7 @@ use Concrete\Core\Permission\Access\Entity\Entity as PermissionAccessEntity;
 use Concrete\Core\Permission\Access\Entity\GroupEntity as GroupPermissionAccessEntity;
 use Concrete\Core\Permission\Access\Entity\GroupCombinationEntity as GroupCombinationPermissionAccessEntity;
 use Concrete\Core\Permission\Access\Entity\UserEntity as UserPermissionAccessEntity;
+use Concrete\Core\Support\Facade\Application;
 use Concrete\Core\Entity\StyleCustomizer\CustomCssRecord;
 use Area;
 use Concrete\Core\Entity\Page\PagePath;
@@ -140,7 +142,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
 
         $this->loadError(false);
 
-        $q0 = 'select Pages.cID, Pages.pkgID, Pages.siteTreeID, Pages.cPointerID, Pages.cPointerExternalLink, Pages.cIsActive, Pages.cIsSystemPage, Pages.cPointerExternalLinkNewWindow, Pages.cFilename, Pages.ptID, Collections.cDateAdded, Pages.cDisplayOrder, Collections.cDateModified, cInheritPermissionsFromCID, cInheritPermissionsFrom, cOverrideTemplatePermissions, cCheckedOutUID, cIsTemplate, uID, cPath, cParentID, cChildren, cCacheFullPageContent, cCacheFullPageContentOverrideLifetime, cCacheFullPageContentLifetimeCustom from Pages inner join Collections on Pages.cID = Collections.cID left join PagePaths on (Pages.cID = PagePaths.cID and PagePaths.ppIsCanonical = 1) ';
+        $q0 = 'select Pages.cID, Pages.pkgID, Pages.siteTreeID, Pages.cPointerID, Pages.cPointerExternalLink, Pages.cIsDraft, Pages.cIsActive, Pages.cIsSystemPage, Pages.cPointerExternalLinkNewWindow, Pages.cFilename, Pages.ptID, Collections.cDateAdded, Pages.cDisplayOrder, Collections.cDateModified, cInheritPermissionsFromCID, cInheritPermissionsFrom, cOverrideTemplatePermissions, cCheckedOutUID, cIsTemplate, uID, cPath, cParentID, cChildren, cCacheFullPageContent, cCacheFullPageContentOverrideLifetime, cCacheFullPageContentLifetimeCustom from Pages inner join Collections on Pages.cID = Collections.cID left join PagePaths on (Pages.cID = PagePaths.cID and PagePaths.ppIsCanonical = 1) ';
         //$q2 = "select cParentID, cPointerID, cPath, Pages.cID from Pages left join PagePaths on (Pages.cID = PagePaths.cID and PagePaths.ppIsCanonical = 1) ";
 
         $v = [$cInfo];
@@ -260,7 +262,8 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         // this is a hack but it's a really good one for performance
         // if the permission access entity for page owner exists in the database, then we return the collection ID. Otherwise, we just return the permission collection id
         // this is because page owner is the ONLY thing that makes it so we can't use getPermissionsCollectionID, and for most sites that will DRAMATICALLY reduce the number of queries.
-        if (\Concrete\Core\Permission\Access\PageAccess::usePermissionCollectionIDForIdentifier()) {
+        // Drafts are exceptions to this rule because some permission keys of these pages are inherited from "Edit Page Type Draft" permission.
+        if (\Concrete\Core\Permission\Access\PageAccess::usePermissionCollectionIDForIdentifier() && !$this->isPageDraft()) {
             return $this->getPermissionsCollectionID();
         } else {
             return $this->getCollectionID();
@@ -594,8 +597,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
 
     public function isPageDraft()
     {
-        $nc = self::getDraftsParentPage();
-        return $this->getCollectionParentID() == $nc->getCollectionID();
+        return $this->cIsDraft;
     }
 
     private static function translatePermissionsXMLToKeys($node)
@@ -696,7 +698,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         $_cParentID = $c->getCollectionID();
         $q = 'select PagePaths.cPath from PagePaths where cID = ?';
         $v = [$_cParentID];
-        if ($_cParentID > 1) {
+        if ($_cParentID != static::getHomePageID()) {
             $q .= ' and ppIsCanonical = ?';
             $v[] = 1;
         }
@@ -1176,6 +1178,11 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @see \Concrete\Core\Site\Tree\TreeInterface::getSiteTreeObject()
+     */
     public function getSiteTreeObject()
     {
         if (!isset($this->siteTree) && $this->getSiteTreeID()) {
@@ -1722,7 +1729,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
     {
         $db = Database::connection();
         $cID = $db->fetchColumn("select Pages.cID from Pages inner join CollectionVersions on Pages.cID = CollectionVersions.cID where cvIsApproved = 1 and cParentID = ? order by {$sortColumn}", [$this->cID]);
-        if ($cID > 1) {
+        if ($cID && $cID != $this->getSiteHomePageID()) {
             return self::getByID($cID, 'ACTIVE');
         }
 
@@ -2507,7 +2514,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
             return;
         }
 
-        if ($cID <= 1) {
+        if ($cID < 1 || $cID == static::getHomePageID()) {
             return false;
         }
 
@@ -2621,12 +2628,55 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         return $this->getSiteHomePageID() == $this->getCollectionID();
     }
 
+    /**
+     * Get the ID of the homepage for the site tree this page belongs to.
+     *
+     * @return int|null Returns NULL if there's no default locale
+     */
     public function getSiteHomePageID()
     {
-        if (is_object($this->getSiteTreeObject())) {
-            return $this->getSiteTreeObject()->getSiteHomePageID();
+        return static::getHomePageID($this);
+    }
+
+    /**
+     * Is this page the homepage of a site tree?
+     *
+     * @return bool
+     */
+    public function isLocaleHomePage()
+    {
+        return $this->getCollectionID() > 0 && $this->getSiteHomePageID() == $this->getCollectionID();
+    }
+
+    /**
+     * Get the ID of the home page.
+     *
+     * @param Page|int $page The page (or its ID) for which you want the home (if not specified, we'll use the default locale site tree).
+     *
+     * @return int|null Returns NULL if $page is null (or it doesn't have a SiteTree associated) and if there's no default locale.
+     */
+    public static function getHomePageID($page = null)
+    {
+        if ($page) {
+            if (!$page instanceof self) {
+                $page = self::getByID($page);
+            }
+            if ($page instanceof Page) {
+                $siteTree = $page->getSiteTreeObject();
+                if ($siteTree !== null) {
+                    return $siteTree->getSiteHomePageID();
+                }
+            }
         }
-        return HOME_CID;
+        $locale = Application::getFacadeApplication()->make(LocaleService::class)->getDefaultLocale();
+        if ($locale !== null) {
+            $siteTree = $locale->getSiteTreeObject();
+            if ($siteTree != null) {
+                return $siteTree->getSiteHomePageID();
+            }
+        }
+
+        return null;
     }
 
     public function getAutoGeneratedPagePathObject()
@@ -3025,6 +3075,11 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
             $cIsActive = 0;
         }
 
+        $cIsDraft = 0;
+        if (isset($data['cIsDraft']) && $data['cIsDraft']) {
+            $cIsDraft = 1;
+        }
+
         if (isset($data['cName'])) {
             $data['name'] = $data['cName'];
         } elseif (!isset($data['name'])) {
@@ -3081,8 +3136,8 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
 
         $cInheritPermissionsFromCID = ($this->overrideTemplatePermissions()) ? $this->getPermissionsCollectionID() : $masterCID;
         $cInheritPermissionsFrom = ($this->overrideTemplatePermissions()) ? 'PARENT' : 'TEMPLATE';
-        $v = [$cID, $siteTreeID, $ptID, $cParentID, $uID, $cInheritPermissionsFrom, $this->overrideTemplatePermissions(), (int) $cInheritPermissionsFromCID, $cDisplayOrder, $pkgID, $cIsActive];
-        $q = 'insert into Pages (cID, siteTreeID, ptID, cParentID, uID, cInheritPermissionsFrom, cOverrideTemplatePermissions, cInheritPermissionsFromCID, cDisplayOrder, pkgID, cIsActive) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $v = [$cID, $siteTreeID, $ptID, $cParentID, $uID, $cInheritPermissionsFrom, $this->overrideTemplatePermissions(), (int) $cInheritPermissionsFromCID, $cDisplayOrder, $pkgID, $cIsActive, $cIsDraft];
+        $q = 'insert into Pages (cID, siteTreeID, ptID, cParentID, uID, cInheritPermissionsFrom, cOverrideTemplatePermissions, cInheritPermissionsFromCID, cDisplayOrder, pkgID, cIsActive, cIsDraft) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $r = $db->prepare($q);
         $res = $r->execute($v);
 
@@ -3224,16 +3279,17 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
     public static function addStatic($data, TreeInterface $parent = null)
     {
         $db = Database::connection();
-        $cParentID = 1;
-        $cDisplayOrder = 0;
-        $cInheritPermissionsFromCID = 1;
-        $cOverrideTemplatePermissions = 1;
         if ($parent instanceof Page) {
             $cParentID = $parent->getCollectionID();
             $parent->rescanChildrenDisplayOrder();
             $cDisplayOrder = $parent->getNextSubPageDisplayOrder();
             $cInheritPermissionsFromCID = $parent->getPermissionsCollectionID();
             $cOverrideTemplatePermissions = $parent->overrideTemplatePermissions();
+        } else {
+            $cParentID = static::getHomePageID();
+            $cDisplayOrder = 0;
+            $cInheritPermissionsFromCID = $cParentID;
+            $cOverrideTemplatePermissions = 1;
         }
 
         if (isset($data['pkgID'])) {

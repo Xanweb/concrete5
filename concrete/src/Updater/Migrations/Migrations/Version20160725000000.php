@@ -27,12 +27,16 @@ use Concrete\Core\Tree\Node\Type\FileFolder;
 use Concrete\Core\Tree\TreeType;
 use Concrete\Core\Tree\Type\ExpressEntryResults;
 use Concrete\Core\Updater\Migrations\AbstractMigration;
+use Concrete\Core\Updater\Migrations\Routine\AddPageDraftsBooleanTrait;
 use Doctrine\DBAL\Schema\Schema;
 use Concrete\Core\Attribute\Category\PageCategory;
 use Concrete\Core\Support\Facade\Application;
 
 class Version20160725000000 extends AbstractMigration
 {
+
+    use AddPageDraftsBooleanTrait;
+
     protected function output($message)
     {
         $this->version->getConfiguration()->getOutputWriter()->write($message);
@@ -72,13 +76,7 @@ class Version20160725000000 extends AbstractMigration
         // Fix orphans of AttributeKeyCategories
         $this->nullifyInvalidForeignKey('AttributeKeys', 'akCategoryID', 'AttributeKeyCategories', 'akCategoryID');
         // Delete orphans of AttributeValues
-        $this->deleteInvalidForeignKey('atAddress', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atBoolean', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atDateTime', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atDefault', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atFile', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atNumber', 'avID', 'AttributeValues', 'avID');
-        $this->deleteInvalidForeignKey('atSocialLinks', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidAttributeValuesForeignKeys();
         // Fix orphans of AttributeValues
         $this->nullifyInvalidForeignKey('FileAttributeValues', 'avID', 'AttributeValues', 'avID');
         $this->nullifyInvalidForeignKey('UserAttributeValues', 'avID', 'AttributeValues', 'avID');
@@ -86,6 +84,20 @@ class Version20160725000000 extends AbstractMigration
         $this->deleteInvalidForeignKey('AttributeSetKeys', 'asID', 'AttributeSets', 'asID');
         // Fix Stack orphans 
         $this->deleteInvalidForeignKey('Stacks', 'cID', 'Pages', 'cID');
+        // Delete invalid records from MultilingualPageRelations
+        $this->deleteInvalidForeignKey('MultilingualPageRelations', 'cID', 'Pages', 'cID');
+    }
+
+    protected function deleteInvalidAttributeValuesForeignKeys()
+    {
+        // Delete orphans of AttributeValues
+        $this->deleteInvalidForeignKey('atAddress', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atBoolean', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atDateTime', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atDefault', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atFile', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atNumber', 'avID', 'AttributeValues', 'avID');
+        $this->deleteInvalidForeignKey('atSocialLinks', 'avID', 'AttributeValues', 'avID');
     }
 
     protected function nullifyInvalidForeignKeys()
@@ -365,7 +377,7 @@ class Version20160725000000 extends AbstractMigration
             $this->importAttributeKeySettings($row['atID'], $row['akID']);
             switch ($akCategory) {
                 case 'pagekey':
-                    $rb = $this->connection->executeQuery('select * from CollectionAttributeValues where akID = ?', [$row['akID']]);
+                    $rb = $this->connection->executeQuery('select * from CollectionAttributeValues where akID = ? group by avID', [$row['akID']]);
                     while ($rowB = $rb->fetch()) {
                         $this->addAttributeValue($row['atID'], $row['akID'], $rowB['avID']);
                     }
@@ -968,7 +980,17 @@ class Version20160725000000 extends AbstractMigration
             $site->setSiteName(\Config::get('concrete.site'));
 
             // migrate theme
-            $c = \Page::getByID(HOME_CID);
+            $homeCID = null;
+            try {
+                $homeCID = \Page::getHomePageID();
+            } catch (\Exception $x) {
+            } catch (\Throwable $x) {
+            }
+            if ($homeCID == null) {
+                $homeCID = 1;
+            }
+            
+            $c = \Page::getByID($homeCID);
             $site->setThemeID($c->getCollectionThemeID());
 
             $em->persist($site);
@@ -1189,7 +1211,16 @@ class Version20160725000000 extends AbstractMigration
         $this->output(t('Updating locales and multilingual sections...'));
         // Update home page so it has no handle. This way we won't make links like /home/services unless
         // people really want that.
-        $home = Page::getByID(HOME_CID, 'RECENT');
+        $homeCID = null;
+        try {
+            $homeCID = \Page::getHomePageID();
+        } catch (\Exception $x) {
+        } catch (\Throwable $x) {
+        }
+        if ($homeCID == null) {
+            $homeCID = 1;
+        }
+        $home = Page::getByID($homeCID, 'RECENT');
         $home->update(['cHandle' => '']);
 
         // Loop through all multilingual sections
@@ -1325,6 +1356,7 @@ class Version20160725000000 extends AbstractMigration
         $this->migrateOldPermissions();
         $this->addPermissions();
         $this->importAttributeKeys();
+        $this->deleteInvalidAttributeValuesForeignKeys();
         $this->addDashboard();
         $this->updateFileManager();
         $this->migrateFileManagerPermissions();
@@ -1342,6 +1374,11 @@ class Version20160725000000 extends AbstractMigration
         $this->fixStacks();
         $this->nullifyInvalidForeignKeys();
         $this->connection->Execute('set foreign_key_checks = 1');
+    }
+
+    public function postUp(Schema $schema)
+    {
+        $this->migrateDrafts();
     }
 
     public function down(Schema $schema)

@@ -220,8 +220,6 @@ const FILENAME_EXPRESS_CONTROL_OPTIONS = 'options.php';
 const FILENAME_GATHERING_DATA_SOURCE_OPTIONS = 'options.php';
 const FILENAME_GATHERING_ITEM_TEMPLATE_ICON = 'icon.png';
 const FILENAME_CONVERSATION_EDITOR_OPTIONS = 'options.php';
-const FILENAME_CONVERSATION_EDITOR_FORM_MESSAGE = 'message.php';
-const FILENAME_CONVERSATION_EDITOR_FORM_REPLY = 'reply.php';
 const FILENAME_STYLE_CUSTOMIZER_STYLES = 'styles.xml';
 const FILENAME_STYLE_CUSTOMIZER_DEFAULT_PRESET_NAME = 'defaults.less';
 
@@ -316,6 +314,9 @@ const NEWSFLOW_VIEWED_THRESHOLD = 86400; // once a day
 /* -- Pages -- */
 const CHECKOUT_TIMEOUT = 300; // # in seconds.
 const VERSION_INITIAL_COMMENT = 'Initial Version';
+/**
+ * @deprecated Use Page::getHomePageID()
+ */
 const HOME_CID = 1;
 const HOME_NAME = 'Home';
 const HOME_UID = USER_SUPER_ID;
