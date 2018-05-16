@@ -38,6 +38,7 @@ use stdClass;
 use User as ConcreteUser;
 use View;
 use Concrete\Core\Export\Item\User as UserExporter;
+use Concrete\Core\File\Image\BitmapFormat;
 
 class UserInfo extends ConcreteObject implements AttributeObjectInterface, PermissionObjectInterface, ExportableInterface
 {
@@ -168,7 +169,7 @@ class UserInfo extends ConcreteObject implements AttributeObjectInterface, Permi
     public function getUserBadges()
     {
         $groups = [];
-        $r = $this->connection->executeQuery('select g.gID from Groups g inner join UserGroups ug on g.gID = ug.gID where g.gIsBadge = 1 and ug.uID = ? order by ugEntered desc', [$this->getUserID()]);
+        $r = $this->connection->executeQuery('select g.gID from ' . $this->connection->getDatabasePlatform()->quoteSingleIdentifier('Groups') . ' g inner join UserGroups ug on g.gID = ug.gID where g.gIsBadge = 1 and ug.uID = ? order by ugEntered desc', [$this->getUserID()]);
         while ($row = $r->fetch()) {
             $groups[] = Group::getByID($row['gID']);
         }
@@ -216,7 +217,7 @@ class UserInfo extends ConcreteObject implements AttributeObjectInterface, Permi
         // can get all the details of the user being deleted.
         $this->getDirector()->dispatch('on_user_deleted', new UserInfoEvent($this));
 
-        $attributes = $this->attributeCategory->getAttributeValues($this);
+        $attributes = $this->attributeCategory->getAttributeValues($this->getEntityObject());
         foreach ($attributes as $attribute) {
             $this->attributeCategory->deleteValue($attribute);
         }
@@ -251,10 +252,9 @@ class UserInfo extends ConcreteObject implements AttributeObjectInterface, Permi
     public function updateUserAvatar(ImageInterface $image)
     {
         $fsl = $this->application->make(StorageLocationFactory::class)->fetchDefault()->getFileSystemObject();
+        $bitmapFormat = $this->application->make(BitmapFormat::class);
         $config = $this->application->make('config');
-        $image = $image->get('jpg', [
-            'jpeg_quality' => $config->get('concrete.misc.default_jpeg_image_compression')
-        ]);
+        $image = $image->get(BitmapFormat::FORMAT_JPEG, $bitmapFormat->getFormatImagineSaveOptions(BitmapFormat::FORMAT_JPEG));
         $file = REL_DIR_FILES_AVATARS . '/' . $this->getUserID() . '.jpg';
         if ($fsl->has($file)) {
             $fsl->delete($file);

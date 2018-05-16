@@ -114,6 +114,7 @@ return [
         'core_database' => '\Concrete\Core\Database\DatabaseServiceProvider',
         'core_form' => '\Concrete\Core\Form\FormServiceProvider',
         'core_session' => '\Concrete\Core\Session\SessionServiceProvider',
+        'core_system' => '\Concrete\Core\System\SystemServiceProvider',
         'core_cookie' => '\Concrete\Core\Cookie\CookieServiceProvider',
         'core_http' => '\Concrete\Core\Http\HttpServiceProvider',
         'core_events' => '\Concrete\Core\Events\EventsServiceProvider',
@@ -363,6 +364,17 @@ return [
         '/ccm/system/dialogs/user/bulk/properties' => ['\Concrete\Controller\Dialog\User\Bulk\Properties::view'],
         '/ccm/system/dialogs/user/bulk/properties/clear_attribute' => ['\Concrete\Controller\Dialog\User\Bulk\Properties::clearAttribute'],
         '/ccm/system/dialogs/user/bulk/properties/update_attribute' => ['\Concrete\Controller\Dialog\User\Bulk\Properties::updateAttribute'],
+		'/ccm/system/dialogs/user/bulk/groupadd' => ['\Concrete\Controller\Dialog\User\Bulk\Group::groupadd'],
+		'/ccm/system/dialogs/user/bulk/groupadd/submit' => ['\Concrete\Controller\Dialog\User\Bulk\Group::groupaddsubmit'],
+		'/ccm/system/dialogs/user/bulk/groupremove' => ['\Concrete\Controller\Dialog\User\Bulk\Group::groupremove'],
+		'/ccm/system/dialogs/user/bulk/groupremove/submit' => ['\Concrete\Controller\Dialog\User\Bulk\Group::groupremovesubmit'],
+		'/ccm/system/dialogs/user/bulk/delete' => ['\Concrete\Controller\Dialog\User\Bulk\Delete::view'],
+		'/ccm/system/dialogs/user/bulk/delete/submit' => ['\Concrete\Controller\Dialog\User\Bulk\Delete::submit'],
+		'/ccm/system/dialogs/user/bulk/activate' => ['\Concrete\Controller\Dialog\User\Bulk\Activate::activate'],
+		'/ccm/system/dialogs/user/bulk/deactivate' => ['\Concrete\Controller\Dialog\User\Bulk\Activate::deactivate'],
+		'/ccm/system/dialogs/user/bulk/activate/submit' => ['\Concrete\Controller\Dialog\User\Bulk\Activate::activatesubmit'],
+		'/ccm/system/dialogs/user/bulk/deactivate/submit' => ['\Concrete\Controller\Dialog\User\Bulk\Activate::deactivatesubmit'],
+
         '/ccm/system/dialogs/user/search' => ['\Concrete\Controller\Dialog\User\Search::view'],
 
         '/ccm/system/dialogs/user/advanced_search' => ['\Concrete\Controller\Dialog\User\AdvancedSearch::view'],
@@ -424,6 +436,7 @@ return [
         '/ccm/system/page/multilingual/ignore' => ['\Concrete\Controller\Backend\Page\Multilingual::ignore'],
         '/ccm/system/page/multilingual/unmap' => ['\Concrete\Controller\Backend\Page\Multilingual::unmap'],
         '/ccm/system/page/select_sitemap' => ['\Concrete\Controller\Backend\Page\SitemapSelector::view'],
+        '/ccm/system/page/sitemap_data' => ['\Concrete\Controller\Backend\Page\SitemapData::view'],
 
         /*
          * Block actions - non UI
@@ -812,7 +825,7 @@ return [
             ['css', 'js/fullcalendar/fullcalendar.css', ['minify' => false]],
         ],
         'fullcalendar/localization' => [
-            ['javascript', 'js/fullcalendar/lang-all.js', ['minify' => false, 'combine' => false]],
+            ['javascript', 'js/fullcalendar/locale-all.js', ['minify' => false, 'combine' => false]],
         ],
         'fullcalendar/print' => [
             ['css', 'js/fullcalendar/fullcalendar.print.css', ['minify' => false]],
@@ -1374,9 +1387,9 @@ return [
         'core/calendar/admin' => [
             [
                 ['javascript-localized', 'core/localization'],
-                ['javascript-localized', 'jquery/ui'],
                 ['javascript', 'jquery'],
                 ['javascript', 'jquery/ui'],
+                ['javascript-localized', 'jquery/ui'],
                 ['javascript', 'core/events'],
                 ['javascript', 'underscore'],
                 ['javascript', 'backbone'],

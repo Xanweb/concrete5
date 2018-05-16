@@ -106,6 +106,10 @@ class Controller extends BlockController
             $c = $this->getCollectionObject();
         }
 
+	if (is_object($c)) {
+            $this->cID = $c->getCollectionID();
+        }
+
         if ($this->requiresRegistration()) {
             if (!$u->isRegistered()) {
                 $this->redirect('/login');
@@ -193,7 +197,7 @@ class Controller extends BlockController
         parent::save($args);
         $db = Database::connection();
 
-        if (!is_array($args['survivingOptionNames'])) {
+        if (!isset($args['survivingOptionNames']) || !is_array($args['survivingOptionNames'])) {
             $args['survivingOptionNames'] = [];
         }
 
@@ -211,7 +215,7 @@ class Controller extends BlockController
 
         $displayOrder = $max ? (int) $max + 1 : 0;
 
-        if (is_array($args['pollOption'])) {
+        if (isset($args['pollOption']) && is_array($args['pollOption'])) {
             foreach ($args['pollOption'] as $optionName) {
                 $v1 = [$this->bID, $optionName, $displayOrder];
                 $q1 = "INSERT INTO btSurveyOptions (bID, optionName, displayOrder) VALUES (?, ?, ?)";

@@ -209,24 +209,19 @@ class PageList extends DatabaseItemList implements PagerProviderInterface, Pagin
 
         switch ($this->pageVersionToRetrieve) {
             case self::PAGE_VERSION_RECENT:
-                $query->andWhere('cvID = (select max(cvID) from CollectionVersions where cID = cv.cID)');
+                $query->andWhere('cv.cvID = (select max(cvID) from CollectionVersions where cID = cv.cID)');
                 break;
             case self::PAGE_VERSION_RECENT_UNAPPROVED:
                 $query
-                    ->andWhere('cvID = (select max(cvID) from CollectionVersions where cID = cv.cID)')
+                    ->andWhere('cv.cvID = (select max(cvID) from CollectionVersions where cID = cv.cID)')
                     ->andWhere('cvIsApproved = 0');
                 break;
             case self::PAGE_VERSION_ACTIVE:
             default:
                 $now = new \DateTime();
-                $query->andWhere('cvIsApproved = 1');
-                $query->andWhere('(cvPublishDate <= :cvPublishDate or cvPublishDate is null)');
+                $query->andWhere('cv.cvID = (select cvID from CollectionVersions where cID = cv.cID and cvIsApproved = 1 and ((cvPublishDate <= :cvPublishDate or cvPublishDate is null) and (cvPublishEndDate >= :cvPublishDate or cvPublishEndDate is null)) order by cvPublishDate desc limit 1)');
                 $query->setParameter('cvPublishDate', $now->format('Y-m-d H:i:s'));
                 break;
-        }
-
-        if ($this->isFulltextSearch) {
-            $query->addSelect('match(psi.cName, psi.cDescription, psi.content) against (:fulltext) as cIndexScore');
         }
 
         if (!$this->includeInactivePages) {
@@ -572,6 +567,7 @@ class PageList extends DatabaseItemList implements PagerProviderInterface, Pagin
     {
         $this->isFulltextSearch = true;
         $this->autoSortColumns[] = 'cIndexScore';
+        $this->query->addSelect('match(psi.cName, psi.cDescription, psi.content) against (:fulltext) as cIndexScore');
         $this->query->where('match(psi.cName, psi.cDescription, psi.content) against (:fulltext)');
         $this->query->orderBy('cIndexScore', 'desc');
         $this->query->setParameter('fulltext', $keywords);
@@ -587,13 +583,20 @@ class PageList extends DatabaseItemList implements PagerProviderInterface, Pagin
         } else {
             $treeNodeID = $topic;
         }
-        $this->query->innerJoin('cv', 'CollectionAttributeValues', 'cavTopics',
-            'cv.cID = cavTopics.cID and cv.cvID = cavTopics.cvID');
-        $this->query->innerJoin('cavTopics', 'AttributeValues', 'av', 'cavTopics.avID = av.avID');
-        $this->query->innerJoin('av', 'atSelectedTopics', 'atst', 'av.avID = atst.avID');
-        $this->query->andWhere('atst.treeNodeID = :TopicNodeID');
-        $this->query->setParameter('TopicNodeID', $treeNodeID);
-        $this->query->select('distinct p.cID');
+        $paramName = $this->query->createNamedParameter($treeNodeID, \PDO::PARAM_INT);
+        $query = $this->query->getConnection()->createQueryBuilder();
+        $query
+            ->select('cavTopics.cID', 'cavTopics.cvID')
+            ->from('CollectionAttributeValues', 'cavTopics')
+            ->innerJoin('cavTopics', 'AttributeValues', 'av', 'cavTopics.avID = av.avID')
+            ->innerJoin('av', 'atSelectedTopics', 'atst', 'av.avID = atst.avID')
+            ->where('atst.treeNodeID = ' . $paramName)
+        ;
+        $this->query
+            ->andWhere(
+                $this->query->expr()->in('(cv.cID,cv.cvID)', $query->getSQL())
+            )
+        ;
     }
 
     public function filterByBlockType(BlockType $bt)
@@ -695,6 +698,15 @@ class PageList extends DatabaseItemList implements PagerProviderInterface, Pagin
     {
         if ($this->isFulltextSearch) {
             $this->sortBy('cIndexScore', 'desc');
+        }
+    }
+
+    protected function selectDistinct()
+    {
+        $selects = $this->query->getQueryPart('select');
+        if ($selects[0] === 'p.cID') {
+            $selects[0] = 'distinct p.cID';
+            $this->query->select($selects);
         }
     }
 

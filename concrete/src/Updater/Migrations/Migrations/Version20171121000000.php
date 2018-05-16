@@ -2,16 +2,19 @@
 
 namespace Concrete\Core\Updater\Migrations\Migrations;
 
-use Concrete\Core\File\Image\Thumbnail\ThumbnailFormatService;
+use Concrete\Core\File\Image\BitmapFormat;
 use Concrete\Core\Updater\Migrations\AbstractMigration;
+use Concrete\Core\Updater\Migrations\RepeatableMigrationInterface;
 use Doctrine\DBAL\Schema\Schema;
 
-class Version20171121000000 extends AbstractMigration
+class Version20171121000000 extends AbstractMigration implements RepeatableMigrationInterface
 {
     /**
-     * @param Schema $schema
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\Updater\Migrations\AbstractMigration::upgradeSchema()
      */
-    public function up(Schema $schema)
+    public function upgradeSchema(Schema $schema)
     {
         $table = $schema->getTable('FileImageThumbnailPaths');
         if ($table->hasIndex('thumbnailPathID')) {
@@ -37,17 +40,15 @@ class Version20171121000000 extends AbstractMigration
         }
     }
 
-    public function postUp(Schema $schema)
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\Updater\Migrations\AbstractMigration::upgradeDatabase()
+     */
+    public function upgradeDatabase()
     {
         $db = $this->connection;
-        $db->executeQuery("UPDATE FileImageThumbnailPaths SET thumbnailFormat = ? WHERE thumbnailFormat = '' AND (path LIKE '%.jpg' OR path LIKE '%.jpeg' OR path LIKE '%.pjpg' OR path LIKE '%.pjpeg')", [ThumbnailFormatService::FORMAT_JPEG]);
-        $db->executeQuery("UPDATE FileImageThumbnailPaths SET thumbnailFormat = ? WHERE thumbnailFormat = ''", [ThumbnailFormatService::FORMAT_PNG]);
-    }
-
-    /**
-     * @param Schema $schema
-     */
-    public function down(Schema $schema)
-    {
+        $db->executeQuery("UPDATE FileImageThumbnailPaths SET thumbnailFormat = ? WHERE thumbnailFormat = '' AND (path LIKE '%.jpg' OR path LIKE '%.jpeg' OR path LIKE '%.pjpg' OR path LIKE '%.pjpeg')", [BitmapFormat::FORMAT_JPEG]);
+        $db->executeQuery("UPDATE FileImageThumbnailPaths SET thumbnailFormat = ? WHERE thumbnailFormat = ''", [BitmapFormat::FORMAT_PNG]);
     }
 }

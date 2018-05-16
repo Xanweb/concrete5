@@ -30,6 +30,14 @@ class MetadataGenerator
                 }
             }
         }
+        foreach ($app->getRegisteredInstances() as $instance) {
+            if (!isset($bindings[$instance])) {
+                $className = $this->resolveAbstractToClassName($app, $instance);
+                if ($className !== null) {
+                    $bindings[$instance] = $className;
+                }
+            }
+        }
 
         return $bindings;
     }
@@ -73,6 +81,8 @@ class MetadataGenerator
             '<?php',
             '',
             'namespace PHPSTORM_META;',
+            '',
+            "die('Access Denied.');",
             '',
         ];
 

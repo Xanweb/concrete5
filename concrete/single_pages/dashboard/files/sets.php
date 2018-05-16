@@ -69,8 +69,8 @@ $dh = Core::make('helper/date');
                             <td class="ccm-file-manager-search-results-thumbnail"><?= $f->getListingThumbnailImage() ?>
                                 <input type="hidden" name="fsDisplayOrder[]" value="<?= $f->getFileID() ?>"/></td>
                             <td data-key="type"><?= $f->getGenericTypetext() ?>/<?= $f->getType() ?></td>
-                            <td data-key="title"><?= $f->getTitle() ?></td>
-                            <td data-key="filename"><?= $f->getFileName() ?></td>
+                            <td data-key="title"><?= h($f->getTitle()) ?></td>
+                            <td data-key="filename"><?= h($f->getFileName()) ?></td>
                             <td data-key="added"
                                 data-sort="<?= $f->getDateAdded()->getTimestamp() ?>"><?= $dh->formatDateTime($f->getDateAdded()->getTimestamp()) ?></td>
                         </tr>
@@ -241,7 +241,7 @@ $dh = Core::make('helper/date');
 
         <form class="form-inline" method="get" action="#">
             <input type="text" class="form-control" autocomplete="off" name="fsKeywords"
-                   value="<?= h($_REQUEST['fsKeywords']) ?>" placeholder="<?= t('Search') ?>">
+                   value="<?= isset($_REQUEST['fsKeywords']) ? h($_REQUEST['fsKeywords']) : '' ?>" placeholder="<?= t('Search') ?>">
             <select data-select="bootstrap" name="fsType">
                 <option
                     value="<?= FileSet::TYPE_PUBLIC ?>" <?php if ($fsType != FileSet::TYPE_PRIVATE) { ?> selected <?php } ?>><?= t('Public Sets') ?></option>

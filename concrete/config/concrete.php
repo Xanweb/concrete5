@@ -6,9 +6,9 @@ return [
      *
      * @var string
      */
-    'version' => '8.3.2a1',
-    'version_installed' => '8.3.2a1',
-    'version_db' => '20171221194440', // the key of the latest database migration
+    'version' => '8.4.1a1',
+    'version_installed' => '8.4.1a1',
+    'version_db' => '20180403143200', // the key of the latest database migration
 
     /*
      * Installation status
@@ -254,7 +254,7 @@ return [
         ],
 
         'clear' => [
-            'thumbnails' => false
+            'thumbnails' => false,
         ],
     ],
 
@@ -316,7 +316,7 @@ return [
         ],
     ],
 
-/*
+    /*
      * ------------------------------------------------------------------------
      * Email settings
      * ------------------------------------------------------------------------
@@ -412,13 +412,6 @@ return [
         'intelligent_search_help' => true,
 
         /*
-         * Display an overlay with up-to-date news from concrete5
-         *
-         * @var bool concrete.external.news_overlay
-         */
-        'news_overlay' => false,
-
-        /*
          * Enable concrete5 news within your site
          *
          * @var bool concrete.external.news
@@ -453,7 +446,7 @@ return [
          * The default thumbnail format: jpeg, png, auto (if auto: we'll create a jpeg if the source image is jpeg, we'll create a png otherwise).
          */
         'default_thumbnail_format' => 'auto',
-        /**
+        /*
          * @var string (now|async)
          */
         'basic_thumbnailer_generation_strategy' => 'now',
@@ -571,7 +564,8 @@ return [
          * @var bool
          */
         'choose_language_login' => false,
-
+        // Fetch language files when installing a package connected to the marketplace [boolean]
+        'auto_install_package_languages' => true,
         // Community Translation instance offering concrete5 translations
         'community_translation' => [
             // API entry point of the Community Translation instance
@@ -698,7 +692,6 @@ return [
              */
             'email_registration' => false,
 
-
             /*
              * Determines whether the username field is displayed when registering
              */
@@ -787,12 +780,9 @@ return [
      * ------------------------------------------------------------------------
      */
     'calendar' => [
-
         'colors' => [
-
             'text' => '#ffffff',
             'background' => '#3A87AD',
-
         ],
     ],
 
@@ -927,5 +917,10 @@ return [
         'plugins' => [
             'selected' => [],
         ],
+    ],
+
+    'composer' => [
+        // [float] The time in seconds until idle triggers a save (set to 0 to disable autosave)
+        'idle_timeout' => 1,
     ],
 ];

@@ -61,6 +61,7 @@ if (!defined('APP_UPDATED_PASSTHRU')) {
             exit;
         }
     }
+    unset($update_file);
     define('APP_UPDATED_PASSTHRU', false);
 }
 
@@ -235,7 +236,7 @@ define('DIR_FILES_BLOCK_TYPES_CORE', DIR_BASE_CORE . '/' . DIRNAME_BLOCKS);
 define('DIR_FILES_TOOLS', DIR_APPLICATION . '/tools');
 define('DIR_FILES_TOOLS_REQUIRED', DIR_BASE_CORE . '/tools');
 define('DIR_PACKAGES_CORE', DIR_BASE_CORE . '/packages');
-define('DIR_STARTING_POINT_PACKAGES', DIR_APPLICATION . '/config/install/packages');
+defined('DIR_STARTING_POINT_PACKAGES') or define('DIR_STARTING_POINT_PACKAGES', DIR_CONFIG_SITE . '/install/packages');
 define('DIR_STARTING_POINT_PACKAGES_CORE', DIR_BASE_CORE . '/config/install/packages');
 define('DIR_CORE_UPDATES', DIR_BASE . '/' . DIRNAME_UPDATES);
 define('DIR_FILES_PAGE_TEMPLATE_ICONS', DIR_BASE_CORE . '/images/icons/page_templates');
@@ -309,7 +310,6 @@ const ONLINE_NOW_TIMEOUT = 300;
 const UVTYPE_REGISTER = 0;
 const UVTYPE_CHANGE_PASSWORD = 1;
 const UVTYPE_LOGIN_FOREVER = 2;
-const NEWSFLOW_VIEWED_THRESHOLD = 86400; // once a day
 
 /* -- Pages -- */
 const CHECKOUT_TIMEOUT = 300; // # in seconds.
@@ -365,10 +365,12 @@ foreach (str_split(decoct($DIRECTORY_PERMISSIONS_MODE), 1) as $p) {
     }
     $FILE_PERMISSIONS_MODE .= intval($p) - 1;
 }
+unset($p);
 $FILE_PERMISSIONS_MODE = octdec($FILE_PERMISSIONS_MODE);
 define('DIRECTORY_PERMISSIONS_MODE_COMPUTED', $DIRECTORY_PERMISSIONS_MODE);
+unset($DIRECTORY_PERMISSIONS_MODE);
 define('FILE_PERMISSIONS_MODE_COMPUTED', $FILE_PERMISSIONS_MODE);
-
+unset($FILE_PERMISSIONS_MODE);
 /*
  * ----------------------------------------------------------------------------
  * We need our include path to be set here for libraries like Zend Framework

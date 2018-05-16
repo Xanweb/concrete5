@@ -559,6 +559,16 @@
             </attributes>
         </page>
 
+        <page name="Reset Edit Mode" path="/dashboard/system/basics/reset_edit_mode" filename="/dashboard/system/basics/reset_edit_mode.php"
+              pagetype="" description="" package="">
+            <attributes>
+                <attributekey handle="meta_keywords">
+                    <value>checkin, check-in, check, force</value>
+                </attributekey>
+            </attributes>
+        </page>
+
+
         <page name="Express" path="/dashboard/system/express" filename="/dashboard/system/express/view.php" pagetype=""
               description="Express" package=""/>
 
@@ -757,11 +767,11 @@
                 </attributekey>
             </attributes>
         </page>
-        <page name="Image Uploading" path="/dashboard/system/files/image_uploading"
+        <page name="Image Options" path="/dashboard/system/files/image_uploading"
               filename="/dashboard/system/files/image_uploading.php" pagetype="" description="" package="">
             <attributes>
                 <attributekey handle="meta_keywords">
-                    <value>uploading, upload, images, image, resizing, manager</value>
+                    <value>uploading, upload, images, image, resizing, manager, exif, rotation, rotate, quality, compression, png, jpg, jpeg</value>
                 </attributekey>
             </attributes>
         </page>
@@ -954,6 +964,14 @@
             <attributes>
                 <attributekey handle="meta_keywords">
                     <value>email server, mail settings, mail configuration, private message, message system, import, email, message</value>
+                </attributekey>
+            </attributes>
+        </page>
+        <page name="System Email Addresses" path="/dashboard/system/mail/addresses"
+              filename="/dashboard/system/mail/addresses.php" pagetype="" description="" package="">
+            <attributes>
+                <attributekey handle="meta_keywords">
+                    <value>mail settings, mail configuration, email, sender</value>
                 </attributekey>
             </attributes>
         </page>

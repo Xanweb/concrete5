@@ -6,6 +6,7 @@ use Concrete\Core\Database\Connection\Connection;
 use Concrete\Core\Entity\Page\Template as TemplateEntity;
 use Concrete\Core\Entity\Site\Site;
 use Concrete\Core\Entity\Site\SiteTree;
+use Concrete\Core\Export\ExportableInterface;
 use Concrete\Core\Page\Stack\Stack;
 use Concrete\Core\Page\Theme\Theme;
 use Concrete\Core\Permission\AssignableObjectTrait;
@@ -57,7 +58,7 @@ use Session;
  * The page object in Concrete encapsulates all the functionality used by a typical page and their contents
  * including blocks, page metadata, page permissions.
  */
-class Page extends Collection implements \Concrete\Core\Permission\ObjectInterface, AssignableObjectInterface, TreeInterface, SiteAggregateInterface
+class Page extends Collection implements \Concrete\Core\Permission\ObjectInterface, AssignableObjectInterface, TreeInterface, SiteAggregateInterface, ExportableInterface
 {
     protected $controller;
     protected $blocksAliasedFromMasterCollection = null;
@@ -134,6 +135,11 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
     public function __construct()
     {
         $this->loadError(COLLECTION_INIT); // init collection until we populate.
+    }
+
+    public function getExporter()
+    {
+        return new Exporter();
     }
 
     protected function populatePage($cInfo, $where, $cvID)
@@ -330,6 +336,18 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         $db = Database::connection();
         $q = 'update Pages set cIsCheckedOut = 0, cCheckedOutUID = null, cCheckedOutDatetime = null, cCheckedOutDatetimeLastEdit = null where cID = ?';
         $db->executeQuery($q, [$this->cID]);
+    }
+
+    /**
+     * @private
+     * Forces all pages to be checked in and edit mode to be reset.
+     * @TODO – move this into a command in version 9.
+     */
+    public static function forceCheckInForAllPages()
+    {
+        $db = Database::connection();
+        $q = 'update Pages set cIsCheckedOut = 0, cCheckedOutUID = null, cCheckedOutDatetime = null, cCheckedOutDatetimeLastEdit = null';
+        $db->executeQuery($q);
     }
 
     /**
@@ -597,7 +615,11 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
 
     public function isPageDraft()
     {
-        return $this->cIsDraft;
+        if (isset($this->cIsDraft) && $this->cIsDraft) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private static function translatePermissionsXMLToKeys($node)
@@ -710,7 +732,7 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         ];
         $cobj = parent::addCollection($data);
         $newCID = $cobj->getCollectionID();
-        $siteTreeID = \Core::make('site')->getSite()->getSiteTreeID();
+        $siteTreeID = $c->getSiteTreeID();
 
         $v = [$newCID, $siteTreeID, $cParentID, $uID, $this->getCollectionID(), $cDisplayOrder];
         $q = "insert into Pages (cID, siteTreeID, cParentID, uID, cPointerID, cDisplayOrder) values (?, ?, ?, ?, ?, ?)";
@@ -1003,54 +1025,13 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         }
     }
 
-    public function export($pageNode, $includePublicDate = true)
+    /**
+     * @deprecated
+     */
+    public function export($pageNode)
     {
-        $p = $pageNode->addChild('page');
-        $p->addAttribute('name', Core::make('helper/text')->entities($this->getCollectionName()));
-        $p->addAttribute('path', $this->getCollectionPath());
-        if ($includePublicDate) {
-            $p->addAttribute('public-date', $this->getCollectionDatePUblic());
-        }
-        $p->addAttribute('filename', $this->getCollectionFilename());
-        $p->addAttribute('pagetype', $this->getPageTypeHandle());
-        $template = PageTemplate::getByID($this->getPageTemplateID());
-        if (is_object($template)) {
-            $p->addAttribute('template', $template->getPageTemplateHandle());
-        }
-        $ui = UserInfo::getByID($this->getCollectionUserID());
-        if (!is_object($ui)) {
-            $ui = UserInfo::getByID(USER_SUPER_ID);
-        }
-        $p->addAttribute('user', $ui->getUserName());
-        $p->addAttribute('description', Core::make('helper/text')->entities($this->getCollectionDescription()));
-        $p->addAttribute('package', $this->getPackageHandle());
-        if ($this->getCollectionParentID() == 0) {
-            if ($this->getSiteTreeID() == 0) {
-                $p->addAttribute('global', 'true');
-            } else {
-                $p->addAttribute('root', 'true');
-            }
-        }
-
-        $attribs = $this->getSetCollectionAttributes();
-        if (count($attribs) > 0) {
-            $attributes = $p->addChild('attributes');
-            foreach ($attribs as $ak) {
-                $av = $this->getAttributeValueObject($ak);
-                $cnt = $ak->getController();
-                $cnt->setAttributeValue($av);
-                $akx = $attributes->addChild('attributekey');
-                $akx->addAttribute('handle', $ak->getAttributeKeyHandle());
-                $cnt->exportValue($akx);
-            }
-        }
-
-        $db = Database::connection();
-        $r = $db->executeQuery('select arHandle from Areas where cID = ? and arIsGlobal = 0 and arParentID = 0', [$this->getCollectionID()]);
-        while ($row = $r->FetchRow()) {
-            $ax = Area::get($this, $row['arHandle']);
-            $ax->export($p, $this);
-        }
+        $exporter = new Exporter();
+        $exporter->export($this, $pageNode);
     }
 
     /**
@@ -2235,6 +2216,15 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         }
     }
 
+    /**
+     * Adds a block to the page.
+     *
+     * @param \Concrete\Core\Block\BlockType\BlockType $bt   The type of block to be added. 
+     * @param \Concrete\Core\Area\Area $a    The area the block will appear. 
+     * @param array $data   An array of settings for the block.
+     * 
+     * @return Block
+     */
     public function addBlock($bt, $a, $data)
     {
         $b = parent::addBlock($bt, $a, $data);
@@ -2252,14 +2242,23 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
         $theme = $this->getCollectionThemeObject();
         if ($btHandle && $theme) {
             $areaTemplates = [];
+            $pageTypeTemplates = [];
             if (is_object($a)) {
                 $areaTemplates = $a->getAreaCustomTemplates();
             }
             $themeTemplates = $theme->getThemeDefaultBlockTemplates();
             if (!is_array($themeTemplates)) {
                 $themeTemplates = [];
+            } else {
+                foreach($themeTemplates as $key => $template) {
+                    $pt = ($this->getPageTemplateHandle()) ? $this->getPageTemplateHandle() : 'default';
+                    if(is_array($template) && $key == $pt) {
+                        $pageTypeTemplates = $template;
+                        unset($themeTemplates[$key]);
+                    }
+                }
             }
-            $templates = array_merge($themeTemplates, $areaTemplates);
+            $templates = array_merge($pageTypeTemplates, $themeTemplates, $areaTemplates);
             if (count($templates) && isset($templates[$btHandle])) {
                 $template = $templates[$btHandle];
                 $b->updateBlockInformation(['bFilename' => $template]);
@@ -2918,6 +2917,13 @@ class Page extends Collection implements \Concrete\Core\Permission\ObjectInterfa
     {
         $db = Database::connection();
         $db->executeQuery('update Pages set cIsActive = 0 where cID = ?', [$this->getCollectionID()]);
+    }
+
+    public function setPageToDraft()
+    {
+        $db = Database::connection();
+        $db->executeQuery('update Pages set cIsDraft = 1 where cID = ?', [$this->getCollectionID()]);
+        $this->cIsDraft = true;
     }
 
     public function activate()
