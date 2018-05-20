@@ -68,6 +68,9 @@ defined('C5_EXECUTE') or die("Access Denied.");
             </div>
         <?php 
 } ?>
+        <?php if($category->getCategoryEntity()->getAttributeKeyCategoryHandle()=="user"):?>
+           <?php  View::element("attribute/key/key_per_user_group",array("key"=>$key));?>
+        <?php endif;?>
 
         <div class="form-group">
             <label class="control-label"><?= t('Searchable') ?></label>

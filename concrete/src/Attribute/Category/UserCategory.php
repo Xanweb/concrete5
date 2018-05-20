@@ -5,8 +5,10 @@ use Concrete\Core\Attribute\Category\AttributeType;
 use Concrete\Core\Attribute\Category\SearchIndexer\StandardSearchIndexerInterface;
 use Concrete\Core\Entity\Attribute\Key\Key;
 use Concrete\Core\Entity\Attribute\Key\UserKey;
+use Concrete\Core\Entity\Attribute\Key\UserKeyPerUserGroup;
 use Concrete\Core\Entity\Attribute\Type;
 use Concrete\Core\Entity\Package;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Request;
 
 class UserCategory extends AbstractStandardCategory
@@ -85,6 +87,7 @@ class UserCategory extends AbstractStandardCategory
         $key->setAttributeKeyEditableOnRegister((string) $request->request->get('uakRegisterEdit') == 1);
         $key->setAttributeKeyRequiredOnRegister((string) $request->request->get('uakRegisterEditRequired') == 1);
         $key->setAttributeKeyDisplayedOnMemberList((string) $request->request->get('uakMemberListDisplay') == 1);
+        $this->setAssociatedGroupsAndTheirConfigurationFromRequest($key,$request);
 
         return $key;
     }
@@ -140,5 +143,35 @@ class UserCategory extends AbstractStandardCategory
         return $value;
     }
 
+    /**
+     *  Method define if key is associated to specific groups and save its configuration for every one
+     * @param UserKey $userKey
+     * @param Request $request
+     */
+    protected function setAssociatedGroupsAndTheirConfigurationFromRequest(UserKey $userKey,Request $request)
+    {
+        $data=$request->request->get('gIDS',array());
+        $associatedGroupIDs=(isset($data['ids']))?$data['ids']:array();
+        if(sizeof($associatedGroupIDs)>0)
+        {
+            $userKeyPerUserGroupCollection=new ArrayCollection();
+            foreach($associatedGroupIDs as $gID)
+            {
+                $keyConfigurationForGroup=(isset($data[$gID]))?$data[$gID]:array();
+                $userKeyPerUserGroup=new UserKeyPerUserGroup();
+                $userKeyPerUserGroup
+                    ->setAttributeKeyDisplayedOnProfile(isset($keyConfigurationForGroup['uakProfileDisplay'])? true:false)
+                    ->setAttributeKeyEditableOnProfile(isset($keyConfigurationForGroup['uakProfileEdit'])?true:false )
+                    ->setAttributeKeyRequiredOnProfile(isset($keyConfigurationForGroup['uakProfileEditRequired'])?true:false)
+                    ->setAttributeKeyRequiredOnRegister(isset($keyConfigurationForGroup['uakRegisterEditRequired'])?true:false)
+                    ->setAttributeKeyEditableOnRegister(isset($keyConfigurationForGroup['uakRegisterEdit'])?true:false)
+                    ->setAttributeKeyDisplayedOnMemberList(isset($keyConfigurationForGroup['uakMemberListDisplay'])?true:false)
+                    ->setGID($gID)
+                    ->setUserAttributeKey($userKey);
+                $userKeyPerUserGroupCollection->add($userKeyPerUserGroup);
+            }
+            $userKey->setUserKeyPerUserGroups($userKeyPerUserGroupCollection);
+        }
+    }
 
 }
