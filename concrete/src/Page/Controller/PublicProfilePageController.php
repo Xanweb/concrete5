@@ -4,7 +4,8 @@ namespace Concrete\Core\Page\Controller;
 use PageController as CorePageController;
 use Config;
 
-class PublicProfilePageController extends CorePageController
+class
+PublicProfilePageController extends CorePageController
 {
     public function on_start()
     {

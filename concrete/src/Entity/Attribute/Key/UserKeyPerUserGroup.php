@@ -4,7 +4,7 @@ namespace Concrete\Core\Entity\Attribute\Key;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="\Concrete\Core\Entity\User\UserKeyPerGroupRepository")
+ * @ORM\Entity()
  * @ORM\Table(name="UserAttributeKeysPerUserGroups")
  */
 class UserKeyPerUserGroup

@@ -11,7 +11,7 @@ $token = \Core::make('Concrete\Core\Validation\CSRF\Token');
 </div>
 
 <?php
-$attribs = UserAttributeKey::getRegistrationList();
+$attribs = UserAttributeKey::getRegistrationList($userGroups);
 
 if ($registerSuccess) {
     ?>
@@ -92,7 +92,7 @@ if ($registerSuccess) {
                         <legend><?= t('Options') ?></legend>
                         <?php
                         foreach ($attribs as $ak) {
-                            $renderer->buildView($ak)->setIsRequired($ak->isAttributeKeyRequiredOnRegister())->render();
+                            $renderer->buildView($ak)->setIsRequired($ak->isAttributeKeyRequiredOnRegisterForUserGroups($userGroups))->render();
                         }
                         ?>
                     </fieldset>

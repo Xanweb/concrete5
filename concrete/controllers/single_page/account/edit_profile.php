@@ -129,13 +129,13 @@ class EditProfile extends AccountPageController
             $data['uPasswordConfirm'] = $passwordNew;
             $data['uPassword'] = $passwordNew;
         }
-
-        $aks = UserAttributeKey::getEditableInProfileList();
+        $userGroups=$this->getSets()['userGroups'];
+        $aks = UserAttributeKey::getEditableInProfileList($userGroups);
 
         foreach ($aks as $uak) {
             $controller = $uak->getController();
             $validator = $controller->getValidator();
-            $response = $validator->validateSaveValueRequest($controller, $this->request, $uak->isAttributeKeyRequiredOnProfile());
+            $response = $validator->validateSaveValueRequest($controller, $this->request, $uak->isAttributeKeyRequiredOnProfileForUserGroups($userGroups));
             /**
              * @var $response ResponseInterface
              */

@@ -3,7 +3,8 @@
 <h2><?=t($c->getCollectionName())?></h2>
 
 <form method="post" action="<?php echo $view->action('save')?>" enctype="multipart/form-data">
-	<?php  $attribs = UserAttributeKey::getEditableInProfileList();
+	<?php
+    $attribs = UserAttributeKey::getEditableInProfileList($userGroups);
     $valt->output('profile_edit');
     ?>
 	<fieldset>
@@ -37,7 +38,7 @@
         foreach ($attribs as $ak) {
             echo $profileFormRenderer
                 ->buildView($ak)
-                ->setIsRequired($ak->isAttributeKeyRequiredOnProfile())
+                ->setIsRequired($ak->isAttributeKeyRequiredOnProfileForUserGroups($userGroups))
                 ->render();
         }
     }

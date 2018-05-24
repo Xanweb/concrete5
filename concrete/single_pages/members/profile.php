@@ -53,7 +53,7 @@ $dh = Core::make('helper/date'); /* @var $dh \Concrete\Core\Localization\Service
 
 
         <?php
-        $uaks = UserAttributeKey::getPublicProfileList();
+        $uaks = UserAttributeKey::getPublicProfileList($profile->getUserObject()->getUserGroupObjects());
         foreach ($uaks as $ua) {
             ?>
 		<div>

@@ -45,6 +45,7 @@ class AccountPageController extends CorePageController
         $this->set('av', Loader::helper('concrete/avatar'));
 
         $this->set('profile', $profile);
+        $this->set("userGroups",$profile->getUserObject()->getUserGroupObjects());
 
         $nav = new AccountMenu($this->getPageObject());
         $this->set('nav', $nav);

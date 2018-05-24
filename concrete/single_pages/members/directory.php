@@ -39,7 +39,8 @@
 			<td class="ccm-members-directory-avatar"><a href="<?=$user->getUserPublicProfileURL()?>"><?=$user->getUserAvatar()->output()?></a></td>
 			<td class="ccm-members-directory-name"><a href="<?=$user->getUserPublicProfileURL()?>"><?=ucfirst($user->getUserName())?></a></td>
 			<?php
-            foreach ($attribs as $ak) {
+            $userGroups=$user->getUserObject()->getUserGroupObjects() ;
+            foreach (UserAttributeKey::getMemberListList($userGroups) as $ak) {
                 ?>
 				<td>
 					<?=$user->getAttribute($ak, 'displaySanitized', 'display');

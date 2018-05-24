@@ -196,7 +196,7 @@ if (isset($user) && is_object($user)) {
                 <h4><?php echo $set->getAttributeSetDisplayName()?></h4>
                 <?php
                     View::element('attribute/editable_list', [
-                        'attributes' => $set->getAttributeKeys(),
+                        'attributes' => $setManager->getSetAttributesKeys($groupObjects,$set),
                         'object' => $user,
                         'saveAction' => $view->action('update_attribute', $user->getUserID()),
                         'clearAction' => $view->action('clear_attribute', $user->getUserID()),

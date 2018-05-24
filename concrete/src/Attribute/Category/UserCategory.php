@@ -3,6 +3,7 @@ namespace Concrete\Core\Attribute\Category;
 
 use Concrete\Core\Attribute\Category\AttributeType;
 use Concrete\Core\Attribute\Category\SearchIndexer\StandardSearchIndexerInterface;
+use Concrete\Core\Attribute\UserKeySetManager;
 use Concrete\Core\Entity\Attribute\Key\Key;
 use Concrete\Core\Entity\Attribute\Key\UserKey;
 use Concrete\Core\Entity\Attribute\Key\UserKeyPerUserGroup;
@@ -53,25 +54,144 @@ class UserCategory extends AbstractStandardCategory
         return $this->entityManager->getRepository('\Concrete\Core\Entity\Attribute\Value\UserValue');
     }
 
-    public function getMemberListList()
+
+    /**
+     * Method that return commons and associated to groups User key list
+     * Note if groups is empty we return only common user attributes
+     * @param array $groups
+     * @return mixed
+     */
+    public function getUserKeyList($groups=array())
     {
-        return $this->getAttributeKeyRepository()->getMemberListList();
+        return $this->getAttributeKeyRepository()->getList($groups);
     }
 
-    public function getPublicProfileList()
+    /**
+     * Method that return commons and associated to groups User key list available on page MemberList
+     * Note if groups is empty we return only common user attributes
+     * @var \Group[] $groups
+     * @return array
+     **/
+    public function getMemberListList($groups=array())
     {
-        return $this->getAttributeKeyRepository()->getPublicProfileList();
+        return $this->getAttributeKeyRepository()->getMemberListList($groups);
+    }
+    /**
+     * Method that return commons and associated to groups User key list available on User Public Profile Page
+     * Note if groups is empty we return only common user attributes
+     * @var \Group[] $groups
+     * @return array
+     **/
+    public function getPublicProfileList($groups=array())
+    {
+        return $this->getAttributeKeyRepository()->getPublicProfileList($groups);
     }
 
-    public function getRegistrationList()
+    /**
+     * Method that return commons and associated to groups User key list available on Registration Page
+     * Note if groups is empty we return only common user attributes
+     * @var \Group[] $groups
+     * @return array
+     **/
+    public function getRegistrationList($groups=array())
     {
-        return $this->getAttributeKeyRepository()->getRegistrationList();
+        return $this->getAttributeKeyRepository()->getRegistrationList($groups);
     }
 
-    public function getEditableInProfileList()
+    /**
+     * Method that return commons and associated to groups User key list available on User Profile Edit Page
+     * Note if groups is empty we return only common user attributes
+     * @var \Group[] $groups
+     * @return array
+     **/
+    public function getEditableInProfileList($groups=array())
     {
-        return $this->getAttributeKeyRepository()->getEditableInProfileList();
+        return $this->getAttributeKeyRepository()->getEditableInProfileList($groups);
     }
+
+    /**
+     * Method that return commons User keys list
+     * Note if groups is empty we return only common user attributes
+     * @var \Group[] $groups
+     * @return array
+     **/
+    public function getCommonList()
+    {
+        return $this->getAttributeKeyRepository()->getCommonList();
+    }
+
+    /**
+     * Method that return all user common attribute are available in register form
+     * @return mixed
+     */
+    public function getCommonRegistrationList()
+    {
+        return $this->getAttributeKeyRepository()->getCommonRegistrationList();
+    }
+
+    /**
+     * Method that return all user common attributes available in view list
+     * @return mixed
+     */
+    public function getCommonMemberListList()
+    {
+        return $this->getAttributeKeyRepository()->getCommonMemberListList();
+    }
+
+    /**
+     * Method that return all user common attributes available in profile list
+     * @return mixed
+     */
+    public function getCommonPublicProfileList()
+    {
+        return $this->getAttributeKeyRepository()-> getCommonPublicProfileList();
+    }
+
+    /**
+     * Method that return all user common attribute are editable in profile list
+     * @return mixed
+     */
+    public function getCommonEditableInProfileList()
+    {
+        return $this->getAttributeKeyRepository()->getCommonEditableInProfileList();
+    }
+
+    /** Method that return Only User Keys available for groups in Registration Form
+     * @param array $groups
+     * @return mixed
+     */
+    public function getGroupsRegistrationList($groups=array())
+    {
+        return $this->getAttributeKeyRepository()->getGroupsRegistrationList($groups);
+    }
+
+    /**
+     * @param array $groups
+     * @return mixed
+     */
+    public function getGroupsMemberListList($groups=array())
+    {
+        return $this->getAttributeKeyRepository()->getGroupsMemberListList($groups);
+    }
+
+    /**
+     * @param array $groups
+     * @return mixed
+     */
+    public function getGroupsPublicProfileList($groups=array())
+    {
+        return $this->getAttributeKeyRepository()->getGroupsPublicProfileList($groups);
+    }
+
+    /**
+     * @param array $groups
+     * @return mixed
+     */
+    public function getGroupsEditableInProfileList($groups=array())
+    {
+        return $this->getAttributeKeyRepository()->getGroupsEditableInProfileList($groups);
+    }
+
 
     /**
      * @param UserKey $key
@@ -143,6 +263,14 @@ class UserCategory extends AbstractStandardCategory
         return $value;
     }
 
+    public function getSetManager()
+    {
+        if (!isset($this->setManager)) {
+            $this->setManager = new UserKeySetManager($this->categoryEntity, $this->getEntityManager());
+        }
+        return $this->setManager;
+    }
+
     /**
      *  Method define if key is associated to specific groups and save its configuration for every one
      * @param UserKey $userKey
@@ -152,9 +280,9 @@ class UserCategory extends AbstractStandardCategory
     {
         $data=$request->request->get('gIDS',array());
         $associatedGroupIDs=(isset($data['ids']))?$data['ids']:array();
+        $userKeyPerUserGroupCollection=new ArrayCollection();
         if(sizeof($associatedGroupIDs)>0)
         {
-            $userKeyPerUserGroupCollection=new ArrayCollection();
             foreach($associatedGroupIDs as $gID)
             {
                 $keyConfigurationForGroup=(isset($data[$gID]))?$data[$gID]:array();
@@ -170,8 +298,8 @@ class UserCategory extends AbstractStandardCategory
                     ->setUserAttributeKey($userKey);
                 $userKeyPerUserGroupCollection->add($userKeyPerUserGroup);
             }
-            $userKey->setUserKeyPerUserGroups($userKeyPerUserGroupCollection);
         }
+        $userKey->setUserKeyPerUserGroups($userKeyPerUserGroupCollection);
     }
 
 }

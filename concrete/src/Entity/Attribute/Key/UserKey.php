@@ -78,7 +78,7 @@ class UserKey extends Key
             $this->userKeyPerUserGroups->clear();
         }
         foreach ($userKeyPerUserGroups as $userKeyPerUserGroup) {
-            $this->addUserKeyPerUserGroups($userKeyPerUserGroup);
+            $this->userKeyPerUserGroups->add($userKeyPerUserGroup);
         }
         return $this;
     }
@@ -243,5 +243,71 @@ class UserKey extends Key
         return $userKeyPerUserGroup;
 
     }
+
+    /**
+     * Method that verify if the attribute is required for groups received as parameter.If $userGroups is empty we return common configuration
+     * Note: the attribute key  is considered required if is found required for one of searched group
+     * @var \Group[]$userGroups
+     * @return boolean
+     */
+    public function isAttributeKeyRequiredOnProfileForUserGroups($userGroups)
+    {
+        return $this->isAttributeKeyRequiredForUserGroupsSharedCode($userGroups,"uakProfileEditRequired");
+    }
+
+
+    /**
+     * Method that verify if the attribute is required for groups received as parameter.If $userGroups is empty we return common configuration
+     * Note: the attribute key  is considered required if is found required for one of searched group
+     * @var \Group[]$userGroups
+     * @return boolean
+     */
+    public function isAttributeKeyRequiredOnRegisterForUserGroups($userGroups)
+    {
+        return $this->isAttributeKeyRequiredForUserGroupsSharedCode($userGroups,"uakRegisterEditRequired");
+    }
+
+    /**
+     * @param $userGroups \Group[]
+     * @param $fieldName
+     * @return bool
+     */
+    private function isAttributeKeyRequiredForUserGroupsSharedCode($userGroups,$fieldName)
+    {
+        $methodName=null;
+        switch($fieldName)
+        {
+            case "uakProfileEditRequired":
+                $methodName="isAttributeKeyRequiredOnProfile";
+                break;
+            default:// is field "uakRegisterEditRequired":
+                $methodName="isAttributeKeyRequiredOnRegister";
+            break;
+        }
+        if(count($userGroups)>0)
+                {
+                    foreach($userGroups as $group) {
+                        if (count($this->userKeyPerUserGroups)>0) {
+                            /**
+                             * @var $userKeyPerUserGroup UserKeyPerUserGroup
+                             */
+                            foreach ($this->userKeyPerUserGroups as $userKeyPerUserGroup) {
+                                if($group->getGroupID()==$userKeyPerUserGroup->getGID() && $userKeyPerUserGroup->{$methodName}()) {
+                                    return true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                           goto a;
+                        }
+
+                    }
+                    return false;
+                }
+        a:
+        return $this->{$fieldName};
+    }
+
 
 }

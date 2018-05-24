@@ -14,7 +14,7 @@ $groupsJSON=(Core::make(\Concrete\Core\Http\Request::class))->get("groups",json_
     <div  class="col-md-2">
          <a class="btn  btn-default btn-xs" data-button="assign-groups" dialog-width="640"
                            dialog-height="480" dialog-modal="true"
-                           href="<?= URL::to('/ccm/system/dialogs/group/search') ?>?filter=assign"
+                           href="<?= URL::to('/ccm/system/dialogs/group/search') ?>"
                            dialog-title="<?= t('Add Groups') ?>"><?= t('Add') ?></a>
 </div>
 </div>
