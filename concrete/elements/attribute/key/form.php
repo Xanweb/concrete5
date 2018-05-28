@@ -68,7 +68,8 @@ defined('C5_EXECUTE') or die("Access Denied.");
             </div>
         <?php 
 } ?>
-        <?php if($category->getCategoryEntity()->getAttributeKeyCategoryHandle()=="user"):?>
+
+        <?php if(method_exists($category,'getCategoryEntity')&&$category->getCategoryEntity()->getAttributeKeyCategoryHandle()=="user"): ?>
            <?php  View::element("attribute/key/key_per_user_group",array("key"=>$key));?>
         <?php endif;?>
 
