@@ -5,9 +5,13 @@ use Concrete\Core\Entity\Express\Entity;
 use Concrete\Core\Entity\Express\Entry;
 use Concrete\Core\Entity\Express\Form;
 use Concrete\Core\Express\Event\Event;
+use Concrete\Core\Express\Event\ExpressEntryAdd;
+use Concrete\Core\Express\Event\ExpressEntryDelete;
+use Concrete\Core\Express\Event\ExpressEntryWithFormAttributesSave;
 use Concrete\Core\Express\Form\Control\SaveHandler\SaveHandlerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class Manager implements EntryManagerInterface
@@ -54,34 +58,50 @@ class Manager implements EntryManagerInterface
         if ($entity->supportsCustomDisplayOrder()) {
             $entry->setEntryDisplayOrder($this->getNewDisplayOrder($entity));
         }
-        $this->entityManager->persist($entry);
-        $this->entityManager->flush();
+        $expressEntryAddEvent=new ExpressEntryAdd($entry);
+        $expressEntryAddEvent->setEntityManager($this->entityManager);
+        \Events::dispatch('on_express_entry_add',$expressEntryAddEvent);
+        if($expressEntryAddEvent->proceed()) {
+            $this->entityManager->persist($entry);
+            $this->entityManager->flush();
+        }
         return $entry;
     }
 
     public function deleteEntry(Entry $entry)
     {
-        // Get all associations that reference this entry.
-        $this->entityManager->remove($entry);
-        $this->entityManager->flush();
+        $expressEntryDeleteEvent=new ExpressEntryDelete($entry);
+        $expressEntryDeleteEvent->setEntityManager($this->entityManager);
+        \Events::dispatch("on_express_entry_delete",$expressEntryDeleteEvent);
+        if($expressEntryDeleteEvent->proceed()) {
+            // Get all associations that reference this entry.
+            $this->entityManager->remove($entry);
+            $this->entityManager->flush();
+        }
     }
 
     public function saveEntryAttributesForm(Form $form, Entry $entry)
     {
-        foreach ($form->getControls() as $control) {
-            $type = $control->getControlType();
-            $saver = $type->getSaveHandler($control);
-            if ($saver instanceof SaveHandlerInterface) {
-                $saver->saveFromRequest($control, $entry, $this->request);
+        $expressEntryWithFormAttributesEvent=new ExpressEntryWithFormAttributesSave($entry,$form);
+        $expressEntryWithFormAttributesEvent->setEntityManager($this->entityManager);
+        \Events::dispatch("on_save_express_entry_form_with_attributes",$expressEntryWithFormAttributesEvent);
+        if($expressEntryWithFormAttributesEvent->proceed()) {
+            foreach ($form->getControls() as $control) {
+                $type = $control->getControlType();
+                $saver = $type->getSaveHandler($control);
+                if ($saver instanceof SaveHandlerInterface) {
+                    $saver->saveFromRequest($control, $entry, $this->request);
+                }
             }
+
+            $this->entityManager->flush();
+
+            $ev = new Event($entry);
+            $ev->setEntityManager($this->entityManager);
+            \Events::dispatch('on_express_entry_saved', $ev);
+            return $ev->getEntry();
         }
-
-        $this->entityManager->flush();
-
-        $ev = new Event($entry);
-        $ev->setEntityManager($this->entityManager);
-        \Events::dispatch('on_express_entry_saved', $ev);
-        return $ev->getEntry();
+        return $entry;
     }
 
 }

@@ -83,6 +83,7 @@ class Controller extends BlockController implements NotificationProviderInterfac
         $this->set('formName', $c->getCollectionName());
         $this->set('submitLabel', t('Submit'));
         $this->set('thankyouMsg', t('Thanks!'));
+        $this->set("saveData",1);
         $this->edit();
         $this->set('resultsFolder', $this->get('formResultsRootFolderNodeID'));
 
@@ -211,7 +212,12 @@ class Controller extends BlockController implements NotificationProviderInterfac
                             }
                         }
                     }
-
+                    //if user don't want to save (on only an email is sent and data is removed )
+                    if($this->saveData=="0")
+                    {
+                        // Remove the entry and silently fail.
+                        $manager->deleteEntry($entry);
+                    }
                     $r = null;
                     if ($this->redirectCID > 0) {
                         $c = \Page::getByID($this->redirectCID);
@@ -378,6 +384,10 @@ class Controller extends BlockController implements NotificationProviderInterfac
 
     public function save($data)
     {
+        if(!isset($data['saveData']))
+        {
+            $data['saveData']="0";
+        }
         if (isset($data['exFormID']) && $data['exFormID'] != '') {
             return parent::save($data);
         }
@@ -630,6 +640,7 @@ class Controller extends BlockController implements NotificationProviderInterfac
             $controls = $form->getControls();
             $this->set('formName', $entity->getName());
             $this->set('submitLabel', $this->submitLabel);
+            $this->set("saveData",$this->saveData);
             $node = Node::getByID($entity->getEntityResultsNodeId());
             if (is_object($node)) {
                 $folder = $node->getTreeNodeParentObject();
