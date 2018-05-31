@@ -77,6 +77,16 @@ class FormBlockSubmissionEmailNotification extends AbstractFormBlockSubmissionNo
             $mh->to($this->getToEmail());
             $mh->from($this->getFromEmail());
             $mh->replyto($this->getReplyToEmail($entry));
+            $mh->addParameter("dataSaveEnabled",$this->blockController->saveData);
+            if(!$this->blockController->saveData)//if save submitted data is not active we send also files as attachments in email becuase it will be removed after entry remove
+            {
+                foreach ($this->attributeValues as $attributeValue) {
+                    if($attributeValue->getAttributeTypeObject()->getAttributeTypeHandle()=="image_file")
+                    {
+                        $mh->addAttachment($attributeValue->getValue());
+                    }
+                }
+            }
             $mh->addParameter('entity', $entry->getEntity());
             $mh->addParameter('formName', $this->getFormName($entry));
             $mh->addParameter('attributes', $this->getAttributeValues($entry));

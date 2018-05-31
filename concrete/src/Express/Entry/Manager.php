@@ -74,6 +74,29 @@ class Manager implements EntryManagerInterface
         $expressEntryDeleteEvent->setEntityManager($this->entityManager);
         \Events::dispatch("on_express_entry_delete",$expressEntryDeleteEvent);
         if($expressEntryDeleteEvent->proceed()) {
+            //remove all attributes values
+            $attributeKeyCategory=$entry->getEntity()->getAttributeKeyCategory();
+            $attributeValues=$attributeKeyCategory->getAttributeValues($entry);
+            foreach($attributeValues as $attributeValue)
+            {
+                if($attributeValue->getAttributeTypeObject()->getAttributeTypeHandle()=="image_file")
+                {
+                    $file=$attributeValue->getValue();
+                    if(is_object($file)) {
+                        $fno = $file->getFileNodeObject();
+                        if (is_object($fno)) {
+                            $fno->delete();
+                        }
+                        foreach ($file->getFileVersions() as $fileVersion) {
+                            $this->entityManager->remove($fileVersion);
+                        }
+                        $this->entityManager->flush();
+                        $this->entityManager->refresh($file);
+                        $this->entityManager->remove($file);
+                    }
+                }
+                $attributeKeyCategory->deleteValue($attributeValue);
+            }
             // Get all associations that reference this entry.
             $this->entityManager->remove($entry);
             $this->entityManager->flush();

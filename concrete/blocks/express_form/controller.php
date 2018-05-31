@@ -195,28 +195,31 @@ class Controller extends BlockController implements NotificationProviderInterfac
                     $notifications = $notifier->getNotificationList();
                     $notifier->sendNotifications($notifications, $entry, ProcessorInterface::REQUEST_TYPE_ADD);
 
-                    foreach($values as $value) {
-                        $value = $value->getValueObject();
-                        if ($value instanceof FileProviderInterface) {
-                            $files = $value->getFileObjects();
-                            foreach($files as $file) {
-                                if ($set) {
-                                    $set->addFileToSet($file);
-                                }
-                                if ($folder && $folder->getTreeNodeID() != $rootFolder->getTreeNodeID()) {
-                                    $fileNode = $file->getFileNodeObject();
-                                    if ($fileNode) {
-                                        $fileNode->move($folder);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    //if user don't want to save (on only an email is sent and data is removed )
+                    //if user don't want to save (Only an email is sent and all submitted data is removed )
                     if($this->saveData=="0")
                     {
                         // Remove the entry and silently fail.
                         $manager->deleteEntry($entry);
+                    }
+                    else
+                    {
+                        foreach($values as $value) {
+                            $value = $value->getValueObject();
+                            if ($value instanceof FileProviderInterface) {
+                                $files = $value->getFileObjects();
+                                foreach($files as $file) {
+                                    if ($set) {
+                                        $set->addFileToSet($file);
+                                    }
+                                    if ($folder && $folder->getTreeNodeID() != $rootFolder->getTreeNodeID()) {
+                                        $fileNode = $file->getFileNodeObject();
+                                        if ($fileNode) {
+                                            $fileNode->move($folder);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     $r = null;
                     if ($this->redirectCID > 0) {
