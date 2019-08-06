@@ -1,6 +1,8 @@
 <?php defined('C5_EXECUTE') or die("Access Denied."); ?>
 <div class="ccm-block-desktop-draft-list">
-    <h3><?= t('Page Drafts'); ?></h3>
+    <h3><?= t('Page Drafts'); ?>
+        <i class="ccm-block-desktop-draft-list-for-me-loader fa fa-refresh fa-spin pull-right hidden"></i>
+    </h3>
     <?php if (!empty($drafts)) { ?>
         <div class="draft-list">
             <?php foreach ($drafts as $draft) { ?>
@@ -25,3 +27,10 @@
         <p><?= t('There are no drafts.'); ?></p>
     <?php } ?>
 </div>
+<script type="text/javascript">
+    $(function() {
+        $('div.ccm-block-desktop-draft-list').concreteDraftList({
+            reloadUrl:'<?= $view->action('reload_drafts') ?>'
+        });
+    });
+</script>
