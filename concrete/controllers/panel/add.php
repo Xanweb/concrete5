@@ -10,8 +10,10 @@ use Concrete\Core\Entity\Page\Container;
 use Concrete\Core\Page\Stack\Pile\Pile;
 use Concrete\Core\Page\Stack\Stack;
 use Concrete\Core\Page\Stack\StackList;
+use Concrete\Core\Support\Facade\StackFolder;
 use Concrete\Core\View\View;
 use Doctrine\ORM\EntityManager;
+use Concrete\Core\Page\Page;
 
 class Add extends BackendInterfacePageController
 {
@@ -31,9 +33,11 @@ class Add extends BackendInterfacePageController
                 }
                 $this->set('containers', $containers);
             case 'stacks':
-                $stacks = new StackList();
-                $stacks->filterByUserAdded();
-                $this->set('stacks', $stacks->getResults());
+                $parent = Page::getByPath(STACKS_PAGE_PATH);
+                $stm = new StackList();
+                $stm->filterByParentID($parent->getCollectionID());
+                $stm->excludeGlobalAreas();
+                $this->deliverStackList($stm);
                 break;
             case 'clipboard':
                 $sp = Pile::getDefault();
@@ -48,6 +52,14 @@ class Add extends BackendInterfacePageController
         }
         $this->set('tab', $tab);
         $this->set('ci', $this->app->make('helper/concrete/urls'));
+    }
+
+    protected function deliverStackList(StackList $list)
+    {
+        $list->setFoldersFirst(true);
+//        $list->setSiteTreeObject($this->getSite()->getSiteTreeObject());
+        $this->set('list', $list);
+        $this->set('stacks', $list->getResults());
     }
 
     public function getStackContents()
@@ -65,6 +77,20 @@ class Add extends BackendInterfacePageController
             }
         }
         throw new \Exception(t('Access Denied.'));
+    }
+
+    public function getStackFolderContents()
+    {
+        $this->set('ci', $this->app->make('helper/concrete/urls'));
+        $stackFolder = StackFolder::getByID($this->request->request->get('stackFolderID'));
+        if (is_object($stackFolder)) {
+            $list= new StackList();
+            $list->filterByFolder($stackFolder);
+            $list->setFoldersFirst(true);
+            $stacks = $list->getResults();
+            $this->set('stacks', $stacks);
+            $this->setViewObject(new View('/panels/add/get_stack_folder_contents'));
+        }
     }
 
     protected function getSelectedTab()

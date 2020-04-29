@@ -4,6 +4,7 @@ use Concrete\Core\Block\View\BlockView;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 ?>
+
 <div class="blocks">
     <?php
     foreach ($blocks as $block) {
@@ -28,11 +29,8 @@ defined('C5_EXECUTE') or die('Access Denied.');
             <div class="block-name">
                 <span class="handle"><?= h($type->getBlockTypeName()) ?></span>
             </div>
-            <div class="block-content">
-                <?php
-                $bv = new BlockView($block);
-                $bv->render('scrapbook');
-                ?>
+            <div class="embed-responsive embed-responsive-4by3 block-content">
+                <iframe id="frame" src="<?= URL::to('/ccm/system/panels/add/get_block_preview?blockID='.$block->getBlockID()); ?>" scrolling="no" frameborder="0" allowfullscreen></iframe>
             </div>
             <div class="block-handle"></div>
         </div>

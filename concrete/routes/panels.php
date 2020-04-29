@@ -7,7 +7,9 @@ defined('C5_EXECUTE') or die('Access Denied.');
  * Namespace: Concrete\Controller\Panel\
  */
 $router->all('/add', 'Add::view');
+$router->all('/add/get_block_preview', 'AddBlockPreview::getBlockPreview');
 $router->all('/add/get_stack_contents', 'Add::getStackContents');
+$router->all('/add/get_stack_folder_contents', 'Add::getStackFolderContents');
 $router->all('/dashboard', 'Dashboard::view');
 $router->all('/dashboard/add_favorite', 'Dashboard::addFavorite');
 $router->all('/dashboard/remove_favorite', 'Dashboard::removeFavorite');
