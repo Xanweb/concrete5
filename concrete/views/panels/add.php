@@ -65,6 +65,10 @@ defined('C5_EXECUTE') or die('Access Denied.');
         case 'stacks':
             /* @var Concrete\Core\Page\Stack\Stack[] $stacks */
             ?>
+            <div class="ccm-panel-header-search">
+                <svg><use xlink:href="#icon-search" /></svg>
+                <input type="text" data-input="search-stacks" data-cID="<?= (int) $c->getCollectionID() ?>"  placeholder="<?= t('Search') ?>" autocomplete="false"/>
+            </div>
             <div id="ccm-panel-add-block-stack-list">
                 <?php
                     View::element('panels/add/stack_list', ['stacks' => $stacks, 'c' => $c]);
@@ -128,6 +132,25 @@ defined('C5_EXECUTE') or die('Access Denied.');
 
                             stack.setPeper(dragger)
                         });
+                    }
+                })
+            });
+
+            $("input[data-input=search-stacks]").on('keyup', function(){
+                $.concreteAjax({
+                    dataType: 'html',
+                    type: 'POST',
+                    data: {'searchStacks': $(this).val(), 'cID': $(this).attr('data-cID')},
+                    url: '<?=URL::to('/ccm/system/panels/add/get_search_stacks')?>',
+                    success: function (r) {
+                        var $content = $(r);
+                        $content.find('div.ccm-panel-add-block-stack-item').each(function () {
+                            var stack; var me = $(this); var dragger = me.find('div.ccm-panel-add-block-stack-item-handle');
+                            stack = new Concrete.Stack($(this), Concrete.getEditMode(), dragger);
+                            stack.setPeper(dragger)
+                        });
+                        $('#ccm-panel-add-block-stack-list').empty();
+                        $('#ccm-panel-add-block-stack-list').html($content)
                     }
                 })
             });

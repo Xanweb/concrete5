@@ -72,6 +72,30 @@ class Add extends BackendInterfacePageController
         throw new \Exception(t('Access Denied.'));
     }
 
+    public function getSearchStacks()
+    {
+        $this->set('ci', $this->app->make('helper/concrete/urls'));
+        $searchStacks = $this->request->request->get('searchStacks');
+        if(!empty($searchStacks)){
+            $stacks = new StackList();
+            $q = $stacks->getQueryObject();
+            $q->andWhere( $q->expr()->like('s.stName', ':searchStacks'));
+            $q->setParameter('searchStacks', "%{$searchStacks}%");
+            $stacks->filterByUserAdded();
+            $this->set('stacks', $stacks->getResults());
+        } else {
+            $parent = Page::getByPath(STACKS_PAGE_PATH);
+            $list = new StackList();
+            $list->filterByParentID($parent->getCollectionID());
+            $list->setFoldersFirst(true);
+            $list->excludeGlobalAreas();
+            $stacks = $list->getResults();
+            $this->set('stacks', $stacks);
+        }
+        $this->setViewObject(new View('/panels/add/get_stack_folder_contents'));
+        return;
+    }
+
     public function getStackContents()
     {
         $this->set('ci', $this->app->make('helper/concrete/urls'));

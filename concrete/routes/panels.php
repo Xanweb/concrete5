@@ -9,6 +9,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
 $router->all('/add', 'Add::view');
 $router->all('/add/get_stack_contents', 'Add::getStackContents');
 $router->all('/add/get_stack_folder_contents', 'Add::getStackFolderContents');
+$router->all('/add/get_search_stacks', 'Add::getSearchStacks');
 $router->all('/dashboard', 'Dashboard::view');
 $router->all('/dashboard/add_favorite', 'Dashboard::addFavorite');
 $router->all('/dashboard/remove_favorite', 'Dashboard::removeFavorite');
