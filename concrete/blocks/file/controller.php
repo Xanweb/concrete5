@@ -1,9 +1,9 @@
 <?php
+
 namespace Concrete\Block\File;
 
 use Concrete\Core\Feature\Features;
 use Concrete\Core\Feature\UsesFeatureInterface;
-use Core;
 use File;
 use Concrete\Core\Block\BlockController;
 
@@ -43,16 +43,39 @@ class Controller extends BlockController implements UsesFeatureInterface
             Features::BASICS
         ];
     }
-    
+
     public function getSearchableContent()
     {
         return $this->fileLinkText;
     }
 
+    public function add()
+    {
+        $this->set('bf', null);
+        $this->set('fileLinkText', null);
+        $this->set('forceDownload', 0);
+
+        $this->set('al', $this->app->make('helper/concrete/asset_library'));
+    }
+
+    public function edit()
+    {
+        // file object
+        $bf = null;
+        if ($this->getFileID() > 0) {
+            $bf = $this->getFileObject();
+        }
+        $this->set('bf', $bf);
+        $this->set('fileLinkText', $this->getLinkText());
+        $this->set('forceDownload', $this->forceDownload);
+
+        $this->set('al', $this->app->make('helper/concrete/asset_library'));
+    }
+
     public function validate_composer()
     {
         $f = $this->getFileObject();
-        $e = Core::make('helper/validation/error');
+        $e = $this->app->make('helper/validation/error');
         if (!is_object($f) || $f->isError() || !$f->getFileID()) {
             $e->add(t('You must specify a valid file.'));
         }
@@ -78,7 +101,8 @@ class Controller extends BlockController implements UsesFeatureInterface
 
     public function validate($args)
     {
-        $e = Core::make('helper/validation/error');
+
+        $e = $this->app->make('helper/validation/error');
         if ($args['fID'] < 1) {
             $e->add(t('You must select a file.'));
         }

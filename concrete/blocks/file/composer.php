@@ -1,15 +1,19 @@
 <?php defined('C5_EXECUTE') or die("Access Denied.");
-$form = Loader::helper('form');
-$html = Loader::helper('html');
-$url = Loader::helper('concrete/urls');
+
+/**
+ * @var Concrete\Block\File\Controller $controller
+ * @var $label string
+ * @var $description text
+ */
+
+$app = \Concrete\Core\Support\Facade\Application::getFacadeApplication();
+$al = $app->make('helper/concrete/asset_library');
 
 if ($controller->getFileID() > 0) {
     $bf = $controller->getFileObject();
 }
 
 $setcontrol = $control->getPageTypeComposerFormLayoutSetControlObject();
-$al = Loader::helper('concrete/asset_library');
-
 ?>
 
 <div class="control-group">
