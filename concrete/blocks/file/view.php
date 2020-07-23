@@ -1,10 +1,8 @@
-<?php defined('C5_EXECUTE') or die("Access Denied.");
+<?php defined('C5_EXECUTE') or die('Access Denied.');
 /**
  * @var Concrete\Block\File\Controller $controller
  * @var Concrete\Core\Form\Service\Form $form
- * @var Concrete\Core\File\File $bf
- * @var $fileLinkText string
- * @var $forceDownload boolean
+ * @var bool $forceDownload
  */
 
 $f = $controller->getFileObject();

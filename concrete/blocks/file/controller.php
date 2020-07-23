@@ -2,45 +2,51 @@
 
 namespace Concrete\Block\File;
 
+use Concrete\Core\Block\BlockController;
 use Concrete\Core\Feature\Features;
 use Concrete\Core\Feature\UsesFeatureInterface;
 use File;
-use Concrete\Core\Block\BlockController;
 
 class Controller extends BlockController implements UsesFeatureInterface
 {
     protected $btInterfaceWidth = 300;
+
     protected $btCacheBlockRecord = true;
+
     protected $btCacheBlockOutput = true;
+
     protected $btCacheBlockOutputOnPost = true;
+
     protected $btCacheBlockOutputForRegisteredUsers = true;
+
     protected $btInterfaceHeight = 320;
+
     protected $btTable = 'btContentFile';
 
-    protected $btExportFileColumns = array('fID');
+    protected $btExportFileColumns = ['fID'];
 
     /**
      * Used for localization. If we want to localize the name/description we have to include this.
      */
     public function getBlockTypeDescription()
     {
-        return t("Link to files stored in the asset library.");
+        return t('Link to files stored in the asset library.');
     }
 
     public function getBlockTypeName()
     {
-        return t("File");
+        return t('File');
     }
 
     public function getJavaScriptStrings()
     {
-        return array('file-required' => t('You must select a file.'));
+        return ['file-required' => t('You must select a file.')];
     }
 
     public function getRequiredFeatures(): array
     {
         return [
-            Features::BASICS
+            Features::BASICS,
         ];
     }
 
@@ -55,21 +61,24 @@ class Controller extends BlockController implements UsesFeatureInterface
         $this->set('fileLinkText', null);
         $this->set('forceDownload', 0);
 
-        $this->set('al', $this->app->make('helper/concrete/asset_library'));
+        $this->set('al', $this->app->make('helper/concrete/file_manager'));
     }
 
     public function edit()
     {
-        // file object
-        $bf = null;
-        if ($this->getFileID() > 0) {
-            $bf = $this->getFileObject();
-        }
-        $this->set('bf', $bf);
+        $this->getCommonSets();
         $this->set('fileLinkText', $this->getLinkText());
-        $this->set('forceDownload', $this->forceDownload);
+    }
 
-        $this->set('al', $this->app->make('helper/concrete/asset_library'));
+    public function composer()
+    {
+        $this->getCommonSets();
+    }
+
+    public function getCommonSets()
+    {
+        $this->set('al', $this->app->make('helper/concrete/file_manager'));
+        $this->set('bf', $this->getFileObject());
     }
 
     public function validate_composer()
@@ -101,7 +110,6 @@ class Controller extends BlockController implements UsesFeatureInterface
 
     public function validate($args)
     {
-
         $e = $this->app->make('helper/validation/error');
         if ($args['fID'] < 1) {
             $e->add(t('You must select a file.'));
@@ -122,19 +130,18 @@ class Controller extends BlockController implements UsesFeatureInterface
     {
         if ($this->fID) {
             return File::getByID($this->fID);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public function getLinkText()
     {
         if ($this->fileLinkText) {
             return $this->fileLinkText;
-        } else {
-            $f = $this->getFileObject();
-
-            return $f->getTitle();
         }
+        $f = $this->getFileObject();
+
+        return $f->getTitle();
     }
 }
