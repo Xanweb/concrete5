@@ -1,21 +1,21 @@
 <?php
 // Arguments
-/* Concrete\Core\Foundation\Repetition\RepetitionInterface|null $pd */
+// Concrete\Core\Foundation\Repetition\RepetitionInterface|null $pd
 
-use Concrete\Core\Support\Facade\Application;
 use Concrete\Core\Permission\Duration;
+use Concrete\Core\Support\Facade\Application;
 use Punic\Calendar;
 
-defined('C5_EXECUTE') or die("Access Denied.");
+defined('C5_EXECUTE') or die('Access Denied.');
 
 $app = Application::getFacadeApplication();
 
 $service = $app->make('helper/date');
-/* @var Concrete\Core\Localization\Service\Date $service */
+// @var Concrete\Core\Localization\Service\Date $service
 $form = $app->make('helper/form');
-/* @var Concrete\Core\Form\Service\Form $form */
+// @var Concrete\Core\Form\Service\Form $form
 $dt = $app->make('helper/form/date_time');
-/* @var Concrete\Core\Form\Service\Widget\DateTime $dt */
+// @var Concrete\Core\Form\Service\Widget\DateTime $dt
 
 $pdRepeatPeriod = '';
 $pdRepeatPeriodDaysEvery = 1;
@@ -70,7 +70,7 @@ if (isset($pd) && is_object($pd)) {
         $pdEndRepeatDate = 'date';
     } else {
         $pdEndRepeatDateSpecific = null;
-    }    
+    }
 } else {
     $pdStartDate = '';
     $pdEndDate = '';
@@ -83,7 +83,7 @@ if (isset($pd) && is_object($pd)) {
 }
 $weekdays = [];
 $wd = Calendar::getFirstWeekday();
-for ($i = 0; $i < 7; ++$i) {
+for ($i = 0; $i < 7; $i++) {
     $weekdays[$wd] = Calendar::getWeekdayName($wd, 'wide', '', true);
     $wd = ($wd + 1) % 7;
 }
@@ -95,48 +95,56 @@ for ($i = 0; $i < 7; ++$i) {
 </style>
 <div id="ccm-permissions-access-entity-dates">
     <div class="form-group">
-        <label for="pdStartDate_activate" class="control-label"><?= tc('Start date', 'From') ?></label>
+        <label for="pdStartDate_activate" ><?= tc('Start date', 'From'); ?></label>
         <div>
-            <?= $dt->datetime('pdStartDate', $pdStartDate, true) ?>
-            <div class="checkbox">
-                <label><?= $form->checkbox('pdStartDateAllDayActivate', 1, $pdStartDateAllDay) ?> <?= t('All Day') ?></label>
+            <?= $dt->datetime('pdStartDate', $pdStartDate, true); ?>
+            <div class="form-check">
+                <?= $form->checkbox('pdStartDateAllDayActivate', 1, $pdStartDateAllDay); ?>
+                <label class="form-check-label" for="checkStartDateAllDayActivate"> <?= t('All Day'); ?></label>
             </div>
+           
         </div>
     </div>
     <div class="form-group">
-        <label for="pdEndDate_activate" class="control-label"><?= tc('End date', 'To') ?></label>
+        <label for="pdEndDate_activate"><?= tc('End date', 'To'); ?></label>
         <div>
-            <?= $dt->datetime('pdEndDate', $pdEndDate, true) ?>
-            <div class="checkbox"><label><?= $form->checkbox('pdEndDateAllDayActivate', 1, $pdEndDateAllDay) ?> <?= t('All Day') ?></label></div>
+            <?= $dt->datetime('pdEndDate', $pdEndDate, true); ?>
+            <div class="form-check">
+                 <?= $form->checkbox('pdEndDateAllDayActivate', 1, $pdEndDateAllDay); ?> 
+                 <label class="form-check-label" for="checkEndDateAllDayActivate"> <?= t('All Day'); ?></label>
+            </div>
+
         </div>
     </div>
 </div>
 <div id="ccm-permissions-access-entity-repeat" style="display: none">
     <div class="form-group">
-        <div>
-            <div class="checkbox"><label><?= $form->checkbox('pdRepeat', 1, $pdRepeats) ?> <?= t('Repeat...') ?></label></div>
+        <div class="form-check">
+             <?= $form->checkbox('pdRepeat', 1, $pdRepeats); ?>
+             <label class="form-check-label" for="checkPdRepeat"> <?= t('Repeat...'); ?></label>
         </div>
+
     </div>
 </div>
 <div id="ccm-permissions-access-entity-repeat-selector" style="display: none">
     <div class="form-group">
-        <label for="pdRepeatPeriod" class="control-label"><?= t('Repeats')?></label>
+        <label for="pdRepeatPeriod" ><?= t('Repeats'); ?></label>
         <div>
             <?= $form->select(
-                'pdRepeatPeriod',
-                [
-                    '' => t('** Options'),
-                    'daily' => t('Every Day'),
-                    'weekly' => t('Every Week'),
-                    'monthly' => t('Every Month'),
-                ],
-                $pdRepeatPeriod
-            ) ?>
+    'pdRepeatPeriod',
+    [
+        '' => t('** Options'),
+        'daily' => t('Every Day'),
+        'weekly' => t('Every Week'),
+        'monthly' => t('Every Month'),
+    ],
+    $pdRepeatPeriod
+); ?>
         </div>
     </div>
     <div id="ccm-permissions-access-entity-dates-repeat-daily" style="display: none">
         <div class="form-group">
-            <label for="pdRepeatPeriodDaysEvery" class="control-label"><?= t('Repeat every') ?></label>
+            <label for="pdRepeatPeriodDaysEvery" ><?= t('Repeat every'); ?></label>
             <div>
                 <div class="form-inline">
                     <?php
@@ -147,44 +155,38 @@ for ($i = 0; $i < 7; ++$i) {
                         $pdRepeatPeriodDaysEvery,
                         ['style' => 'width: 60px']
                     ); ?>
-                    <?= t('days') ?>
+                    <?= t('days'); ?>
                 </div>
             </div>
         </div>
     </div>
     <div id="ccm-permissions-access-entity-dates-repeat-monthly" style="display: none">
         <div class="form-group">
-            <label for="pdRepeatPeriodMonthsRepeatBy" class="control-label"><?= t('Repeat By') ?></label>
+            <label for="pdRepeatPeriodMonthsRepeatBy" ><?= t('Repeat By'); ?></label>
             <div>
-                <div class="radio">
-                    <label>
-                        <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'month', $pdRepeatPeriodMonthsRepeatBy) ?>
-                        <?= t('Day of Month') ?>
-                    </label>
+                <div class="form-check">
+                    <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'month', $pdRepeatPeriodMonthsRepeatBy); ?>
+                    <label class="form-check-label" for="dayOfMonthLabel"> <?= t('Day of Month'); ?></label>
                 </div>
-                <div class="radio">
-                    <label>
-                        <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'week', $pdRepeatPeriodMonthsRepeatBy) ?>
-                        <?= t('Day of Week') ?>
-                    </label>
+                <div class="form-check">
+                        <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'week', $pdRepeatPeriodMonthsRepeatBy); ?>
+                        <label class="form-check-label" for="dayOfWeekLabel"> <?= t('Day of Week'); ?></label>
                 </div>
-                <div class="radio">
-                    <label>
-                        <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'lastweekday', $pdRepeatPeriodMonthsRepeatBy) ?>
-                        <?= t('The last ') ?>
+                <div class="form-check">
+                        <?= $form->radio('pdRepeatPeriodMonthsRepeatBy', 'lastweekday', $pdRepeatPeriodMonthsRepeatBy); ?>
+                        <label class="form-check-label" for="lestWeekDayLabel">  <?= t('The last '); ?></label>
                         <select name="pdRepeatPeriodMonthsRepeatLastDay">
                             <?php
                             foreach ($weekdays as $key => $value) {
-                                ?><option value="<?= $key?>"<?= ($key == $pdRepeatPeriodMonthsRepeatLastDay) ? ' selected="selected"' : ''?>><?= $value ?></option><?php
+                                ?><option value="<?= $key; ?>"<?= ($key == $pdRepeatPeriodMonthsRepeatLastDay) ? ' selected="selected"' : ''; ?>><?= $value; ?></option><?php
                             }
                             ?>
                         </select>
-                    </label>
                 </div>
             </div>
         </div>
         <div class="form-group">
-            <label for="pdRepeatPeriodMonthsEvery" class="control-label"><?= t('Repeat every') ?></label>
+            <label for="pdRepeatPeriodMonthsEvery"><?= t('Repeat every'); ?></label>
             <div>
                 <div class="form-inline">
                     <?php
@@ -196,23 +198,24 @@ for ($i = 0; $i < 7; ++$i) {
                         ['style' => 'width: 60px']
                     );
                     ?>
-                    <?= t('months') ?>
+                    <?= t('months'); ?>
                 </div>
             </div>
         </div>
     </div>
+
     <div id="ccm-permissions-access-entity-dates-repeat-weekly" style="display: none">
         <div id="ccm-permissions-access-entity-dates-repeat-weekly-dow" style="display: none">
             <div class="form-group">
-                <label class="control-label"><?= t('On') ?></label>
+                <label><?= t('On'); ?></label>
                 <div>
                     <?php
                     foreach ($weekdays as $key => $value) {
                         ?>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="pdRepeatPeriodWeeksDays[]" value="<?= $key ?>"<?= in_array($key, $pdRepeatPeriodWeekDays) ? ' checked="checked"' : '' ?> />
-                                <?= $value ?>
+                                <input type="checkbox" name="pdRepeatPeriodWeeksDays[]" value="<?= $key; ?>"<?= in_array($key, $pdRepeatPeriodWeekDays) ? ' checked="checked"' : ''; ?> />
+                                <?= $value; ?>
                             </label>
                         </div>
                         <?php
@@ -222,7 +225,7 @@ for ($i = 0; $i < 7; ++$i) {
             </div>
         </div>
         <div class="form-group">
-            <label for="pdRepeatPeriodWeeksEvery" class="control-label"><?= t('Repeat every') ?></label>
+            <label for="pdRepeatPeriodWeeksEvery" ><?= t('Repeat every'); ?></label>
             <div>
                 <div class="form-inline">
                     <?php
@@ -232,24 +235,33 @@ for ($i = 0; $i < 7; ++$i) {
                         array_combine($range, $range),
                         $pdRepeatPeriodWeeksEvery,
                         ['style' => 'width: 60px']
-                    ) ?>
-                    <?= t('weeks') ?>
+                    ); ?>
+                    <?= t('weeks'); ?>
                 </div>
             </div>
         </div>
     </div>
     <div id="ccm-permissions-access-entity-dates-repeat-dates" style="display: none">
         <div class="form-group">
-            <label class="control-label"><?= t('Starts On') ?></label>
+            <label ><?= t('Starts On'); ?></label>
             <div>
                 <input type="text" class="form-control" disabled="disabled" value="" name="pdStartRepeatDate"/>
             </div>
         </div>
         <div class="form-group">
-            <label for="pdEndRepeatDate" class="control-label"><?= t('Ends') ?></label>
+            <label for="pdEndRepeatDate"><?= t('Ends'); ?></label>
             <div>
-                <div class="radio"><label><?= $form->radio('pdEndRepeatDate', '', $pdEndRepeatDate) ?> <?= t('Never') ?></label></div>
-                <div class="radio"><label><?= $form->radio('pdEndRepeatDate', 'date', $pdEndRepeatDate) ?> <?= $dt->date('pdEndRepeatDateSpecific', $pdEndRepeatDateSpecific) ?></label></div>
+                 <div class="form-check">
+                        <?= $form->radio('pdEndRepeatDate', '', $pdEndRepeatDate); ?> 
+                        <label class="form-check-label" for="pdEndRepeatDateLabel"><?= t('Never'); ?></label>
+                </div>
+
+                <div class="form-check">
+                        <?= $form->radio('pdEndRepeatDate', 'date', $pdEndRepeatDate); ?> <?= $dt->date('pdEndRepeatDateSpecific', $pdEndRepeatDateSpecific); ?>
+                </div>
+
+                
+                
             </div>
         </div>
     </div>
