@@ -8,21 +8,20 @@ use Concrete\Core\Multilingual\Page\Section\Section;
 use Concrete\Core\Navigation\Breadcrumb\Dashboard\DashboardStacksBreadcrumbFactory;
 use Concrete\Core\Page\Collection\Version\Version;
 use Concrete\Core\Page\Controller\DashboardPageController;
+use Concrete\Core\Page\Page;
 use Concrete\Core\Page\Stack\Stack;
 use Concrete\Core\Page\Stack\StackList;
 use Concrete\Core\Permission\Checker;
+use Concrete\Core\Routing\Redirect;
 use Concrete\Core\Support\Facade\StackFolder;
 use Concrete\Core\User\User;
+use Concrete\Core\View\View;
 use Concrete\Core\Workflow\Request\ApprovePageRequest;
 use Concrete\Core\Workflow\Request\ApproveStackRequest;
 use Concrete\Core\Workflow\Request\DeletePageRequest;
-use Config;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Page;
-use Redirect;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use View;
 
 class Stacks extends DashboardPageController
 {
@@ -426,7 +425,7 @@ class Stacks extends DashboardPageController
                             $v = $page->getVersionToModify();
                             $v->update([
                                 'cName' => $newName,
-                                'cHandle' => str_replace('-', Config::get('concrete.seo.page_path_separator'), $txt->urlify($newName)),
+                                'cHandle' => str_replace('-', $this->app['config']->get('concrete.seo.page_path_separator'), $txt->urlify($newName)),
                             ]);
                             $u = $this->app->make(User::class);
                             if ($isFolder) {

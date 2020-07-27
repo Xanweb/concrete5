@@ -23,6 +23,7 @@ class Types extends DashboardPageController
     {
         $this->set('ci', $this->app->make('helper/concrete/urls'));
         $this->set('urlResolver', $this->app->make(ResolverManagerInterface::class));
+
         parent::on_start();
     }
 
