@@ -7,32 +7,35 @@ use Concrete\Core\Workflow\Progress\PageProgress as PageWorkflowProgress;
 
 /**
  * @var Concrete\Core\Html\Service\Html $html
- * @var Concrete\Core\Application\Service\UserInterface $interface
+ * @var Concrete\Core\Application\Service\Composer $composer
  * @var Concrete\Core\Application\Service\Dashboard $dashboard
+ * @var Concrete\Core\Application\Service\UserInterface $interface
  * @var Concrete\Core\Validation\CSRF\Token $token
  * @var Concrete\Core\Form\Service\Form $form
  * @var Concrete\Core\Page\View\PageView $view
  * @var Concrete\Controller\SinglePage\Dashboard\Blocks\Stacks $controller
  * @var Concrete\Core\Page\Page $c
- * @var \Concrete\Core\Application\Service\Composer $composer
  * @var string $localeName
  * @var string $localeCode
  * @var array $blocks
- * */
+ */
 
 if (isset($neutralStack)) {
-    /* @var Stack $neutralStack
-     * /* @var Stack|null $stackToEdit
+    /**
+     * @var Stack $neutralStack
+     * @var Stack|null $stackToEdit
+     * @var bool $isGlobalArea
      */
-    // @var bool $isGlobalArea
     ?>
     <div class="ccm-dashboard-header-buttons">
         <?php if ($isGlobalArea) { ?>
-            <a href="<?= URL::to('/dashboard/blocks/stacks', 'view_global_areas') ?>" class="btn btn-secondary"><i
-                        class="fas fa-angle-double-left"></i> <?= t('Back to Global Areas') ?></a>
+            <a href="<?= URL::to('/dashboard/blocks/stacks', 'view_global_areas') ?>" class="btn btn-secondary">
+                <i class="fas fa-angle-double-left"></i> <?= t('Back to Global Areas') ?>
+            </a>
         <?php } else { ?>
-            <a href="<?= $view->action('view_details', $neutralStack->getCollectionParentID()) ?>"
-               class="btn btn-secondary"><i class="fas fa-angle-double-left"></i> <?= t('Back to Stacks') ?></a>
+            <a href="<?= $view->action('view_details', $neutralStack->getCollectionParentID()) ?>" class="btn btn-secondary">
+                <i class="fas fa-angle-double-left"></i> <?= t('Back to Stacks') ?>
+            </a>
         <?php } ?>
     </div>
     <div id="ccm-dashboard-content-regular">
@@ -440,7 +443,7 @@ if ($showGlobalAreasFolder || !empty($stacks)) {
                 $formatter = new Concrete\Core\Page\Stack\Formatter($st);
                 ?>
                 <tr class="<?= $formatter->getSearchResultsClass() ?>"
-                    data-details-url="<?= $view->url('/dashboard/blocks/stacks', 'view_details', $st->getCollectionID()) ?>"
+                    data-details-url="<?= URL::to('/dashboard/blocks/stacks', 'view_details', $st->getCollectionID()) ?>"
                     data-collection-id="<?= $st->getCollectionID() ?>">
                     <td class="ccm-search-results-icon"><?= $formatter->getIconElement() ?></td>
                     <td class="ccm-search-results-name"><?= h($st->getCollectionName()) ?></td>
@@ -657,7 +660,7 @@ if ($showGlobalAreasFolder || !empty($stacks)) {
                     modal: true,
                     width: 900,
                     title: <?=json_encode(t('Add Stack'))?>,
-                    height: 200
+                    height: 'auto'
                 });
             });
             $('button[data-dialog=add-folder]').on('click', function () {
