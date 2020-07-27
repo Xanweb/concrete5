@@ -1,4 +1,4 @@
-<?php defined('C5_EXECUTE') or die("Access Denied."); ?>
+<?php defined('C5_EXECUTE') or die('Access Denied.'); ?>
 
 <?php
 if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
@@ -23,14 +23,14 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
         <?php Loader::element('permission/message_list'); ?>
 
         <?php
-        $tabs = array();
+        $tabs = [];
         if ($permissionKey->hasCustomOptionsForm() || ($permissionKey->canPermissionKeyTriggerWorkflow() && count($workflows) > 0)) {
-            $tabs[] = array('access-types', t('Access'), true);
+            $tabs[] = ['ccm-tab-content-access-types', t('Access'), true];
             if ($permissionKey->canPermissionKeyTriggerWorkflow() && count($workflows) > 0) {
-                $tabs[] = array('workflow', t('Workflow'));
+                $tabs[] = ['ccm-tab-content-workflow', t('Workflow')];
             }
             if ($permissionKey->hasCustomOptionsForm()) {
-                $tabs[] = array('custom-options', t('Details'));
+                $tabs[] = ['ccm-tab-content-custom-options', t('Details')];
             }
             echo Loader::helper('concrete/ui')->tabs($tabs);
         } ?>
@@ -43,22 +43,22 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
 
         <?php if (count($tabs) > 0) { ?>
             <div class="tab-content">
-                <div id="access-types" <?php if (count($tabs) > 0) { ?>class="tab-pane active"<?php } ?>>
+                <div id="ccm-tab-content-access-types" <?php if (count($tabs) > 0) { ?>class="tab-pane active"<?php } ?>>
                     <?php
                     $pkCategoryHandle = $permissionKey->getPermissionKeyCategoryHandle();
                     $accessTypes = $permissionKey->getSupportedAccessTypes();
-                    Loader::element('permission/access/list', array('pkCategoryHandle' => $pkCategoryHandle, 'permissionAccess' => $pa, 'accessTypes' => $accessTypes)); ?>
+                    Loader::element('permission/access/list', ['pkCategoryHandle' => $pkCategoryHandle, 'permissionAccess' => $pa, 'accessTypes' => $accessTypes]); ?>
                 </div>
                 <?php if ($permissionKey->hasCustomOptionsForm()) { ?>
-                    <div id="custom-options" class="tab-pane">
+                    <div id="ccm-tab-content-custom-options" class="tab-pane">
                         <?php if ($permissionKey->getPackageID() > 0) {
                             ?>
-                            <?php Loader::packageElement('permission/keys/' . $permissionKey->getPermissionKeyHandle(), $permissionKey->getPackageHandle(), array('permissionAccess' => $pa));
+                            <?php Loader::packageElement('permission/keys/' . $permissionKey->getPermissionKeyHandle(), $permissionKey->getPackageHandle(), ['permissionAccess' => $pa]);
                             ?>
                             <?php
                         } else {
                             ?>
-                            <?php Loader::element('permission/keys/' . $permissionKey->getPermissionKeyHandle(), array('permissionAccess' => $pa));
+                            <?php Loader::element('permission/keys/' . $permissionKey->getPermissionKeyHandle(), ['permissionAccess' => $pa]);
                             ?>
                             <?php
                         }
@@ -69,13 +69,13 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
                 <?php if ($permissionKey->canPermissionKeyTriggerWorkflow() && count($workflows) > 0) { ?>
                     <?php
                     $selectedWorkflows = $pa->getWorkflows();
-                    $workflowIDs = array();
+                    $workflowIDs = [];
                     foreach ($selectedWorkflows as $swf) {
                         $workflowIDs[] = $swf->getWorkflowID();
                     }
                     ?>
 
-                    <div id="workflow" class="tab-pane">
+                    <div id="ccm-tab-content-workflow" class="tab-pane">
                         <div class="form-group">
                             <label class="col-form-label"><?= t('Attach Workflow to this Permission') ?></label>
                             <?php foreach ($workflows as $wf) {
@@ -136,7 +136,7 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
                 var qs = '?';
             }
 
-            $.get('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL("add_access_entity")?>&paID=<?=$pa->getPermissionAccessID()?>&pdID=' + pdID + '&accessType=' + accessType + '&peID=' + peID, function (r) {
+            $.get('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL('add_access_entity')?>&paID=<?=$pa->getPermissionAccessID()?>&pdID=' + pdID + '&accessType=' + accessType + '&peID=' + peID, function (r) {
                 $.get(ccm_permissionDialogURL + qs + 'paID=<?=$pa->getPermissionAccessID()?>&message=entity_added&pkID=<?=$permissionKey->getPermissionKeyID()?>', function (r) {
                     jQuery.fn.dialog.replaceTop(r);
                     jQuery.fn.dialog.hideLoader();
@@ -153,7 +153,7 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
                 var qs = '?';
             }
 
-            $.get('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL("remove_access_entity")?>&paID=<?=$pa->getPermissionAccessID()?>&peID=' + peID, function () {
+            $.get('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL('remove_access_entity')?>&paID=<?=$pa->getPermissionAccessID()?>&peID=' + peID, function () {
                 $.get(ccm_permissionDialogURL + qs + 'paID=<?=$pa->getPermissionAccessID()?>&message=entity_removed&pkID=<?=$permissionKey->getPermissionKeyID()?>', function (r) {
                     jQuery.fn.dialog.replaceTop(r);
                     jQuery.fn.dialog.hideLoader();
@@ -169,7 +169,7 @@ if ($_REQUEST['paID'] && $_REQUEST['paID'] > 0) {
                 // now we reload the permission key to use the new permission assignment
                 var gc = $('#ccm-permission-grid-cell-<?=$permissionKey->getPermissionKeyID()?>');
                 if (gc.length > 0) {
-                    gc.load('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL("display_access_cell")?>&paID=<?=$pa->getPermissionAccessID()?>', function () {
+                    gc.load('<?=$permissionKey->getPermissionAssignmentObject()->getPermissionKeyToolsURL('display_access_cell')?>&paID=<?=$pa->getPermissionAccessID()?>', function () {
                         $('#ccm-permission-grid-name-<?=$permissionKey->getPermissionKeyID()?> a').attr('data-paID', '<?=$pa->getPermissionAccessID()?>');
                         if (typeof (ccm_submitPermissionsDetailFormPost) != 'undefined') {
                             ccm_submitPermissionsDetailFormPost();
