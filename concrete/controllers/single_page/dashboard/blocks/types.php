@@ -47,7 +47,8 @@ class Types extends DashboardPageController
         $this->set('availableBlockTypes', $availableBlockTypes);
         $this->set('marketplaceEnabled', (bool) $config->get('concrete.marketplace.enabled'));
         $this->set('enableMoveBlocktypesAcrossSets', (bool) $config->get('concrete.misc.enable_move_blocktypes_across_sets'));
-        $this->addHeaderItem(<<<EOT
+        $this->addHeaderItem(
+            <<<'EOT'
 <style>
     #ccm-btlist-btsets .fa-bars {
         visibility: hidden;

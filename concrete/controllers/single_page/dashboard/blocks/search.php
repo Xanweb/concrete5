@@ -1,20 +1,16 @@
 <?php
+
 namespace Concrete\Controller\SinglePage\Dashboard\Blocks;
 
 use Concrete\Controller\Element\Search\Files\Header;
 use Concrete\Controller\Search\FileFolder;
-use Concrete\Core\File\Filesystem;
-use Concrete\Core\File\Search\ColumnSet\DefaultSet;
-use Concrete\Core\File\Search\Result\Result;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use View;
-use Loader;
 
 class Search extends DashboardPageController
 {
     public function view()
     {
-
         /*
         $header = $this->app->build(Header::class);
         $this->set('headerMenu', $header);
@@ -40,6 +36,6 @@ class Search extends DashboardPageController
                 "<script type=\"text/javascript\">$(function() { $('#ccm-dashboard-content').concreteFileManager({upload_token: '" . $token . "', result: " . $result . "}); });</script>"
             );
         }
-        */
+         */
     }
 }

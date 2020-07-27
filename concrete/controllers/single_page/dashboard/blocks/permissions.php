@@ -1,17 +1,17 @@
 <?php
+
 namespace Concrete\Controller\SinglePage\Dashboard\Blocks;
 
-use Concrete\Core\Page\Controller\DashboardPageController;
-use Loader;
-use PermissionKey;
-use Concrete\Core\Permission\Access\Access;
 use Concrete\Core\Legacy\TaskPermission;
+use Concrete\Core\Page\Controller\DashboardPageController;
+use Concrete\Core\Permission\Access\Access;
+use PermissionKey;
 
 class Permissions extends DashboardPageController
 {
     public function save()
     {
-        if (Loader::helper('validation/token')->validate('save_permissions')) {
+        if ($this->app->make('helper/validation/token')->validate('save_permissions')) {
             $tp = new TaskPermission();
             if ($tp->canAccessTaskPermissions()) {
                 $permissions = PermissionKey::getList('block_type');
@@ -26,10 +26,11 @@ class Permissions extends DashboardPageController
                         }
                     }
                 }
-                $this->redirect('/dashboard/blocks/permissions', 'updated');
+
+                return $this->buildRedirect($this->action(), 'updated');
             }
         } else {
-            $this->error->add(Loader::helper("validation/token")->getErrorMessage());
+            $this->error->add($this->app->make('helper/validation/token')->getErrorMessage());
         }
     }
 
