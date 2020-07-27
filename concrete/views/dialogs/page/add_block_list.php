@@ -12,9 +12,11 @@ $id = str_replace('.', '_', uniqid('ccm-add-block-lists-', true));
 ?>
 <div id="<?= $id ?>">
     <div class="input-group">
-        <span class="input-group-addon">
-            <i class="fa fa-search"></i>
-        </span>
+        <div class="input-group-prepend">
+                <span class="input-group-text">
+                     <i class="fas fa-search"></i>
+                </span>
+        </div>
         <input type="search" class="form-control" autofocus="autofocus" />
     </div>
     <br />
