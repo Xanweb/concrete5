@@ -55,29 +55,24 @@ defined('C5_EXECUTE') or die('Access Denied.');
         <div class="popover fade" data-menu="ccm-panel-page-versions-version-menu-<%-cvID%>">
             <div class="popover-inner">
                 <ul class="dropdown-menu">
-                    <li><% if (cvIsApproved) { %><span><?= t('Approve') ?></span><% } else { %><a href="#"
+                    <li><% if (cvIsApproved) { %><a class="dropdown-item disabled" href="#"><?= t('Approve') ?></a><% } else { %><a href="#" class="dropdown-item"
                                                                                                   data-version-menu-task="approve"
                                                                                                   data-version-id="<%-cvID%>"><?= t('Approve') ?></a><%
                         } %>
                     </li>
-                    <li><a href="#" data-version-menu-task="duplicate"
+                    <li><a href="#" data-version-menu-task="duplicate" class="dropdown-item"
                            data-version-id="<%-cvID%>"><?= t('Duplicate') ?></a></li>
                     <li class="divider"></li>
                     <% if ( ! cIsStack) { %>
-                    <li><a href="#" data-version-menu-task="new-page"
+                    <li><a href="#" class="dropdown-item" data-version-menu-task="new-page"
                            data-version-id="<%-cvID%>"><?= t('New Page') ?></a></li>
                     <% } %>
-                    <li><% if (!cvIsApproved) { %><span><?= t('Unapprove') ?></span><% } else { %><a href="#"
-                                                                                                     data-version-menu-task="unapprove"
-                                                                                                     data-version-id="<%-cvID%>"><?= t('Unapprove') ?></a><%
-                        } %>
-                    </li>
+                    <li><% if (!cvIsApproved) { %><a class="dropdown-item disabled" href="#"><?=t('Unapprove')?></a><% } else { %><a href="#" class="dropdown-item" data-version-menu-task="unapprove" data-version-id="<%-cvID%>"><?=t('Unapprove')?></a><% } %></li>
 
                     <% if (cpCanDeletePageVersions) { %>
                     <li class="ccm-menu-item-delete">
-                        <span <% if (!cvIsApproved) { %>style="display:none"<% } %>><?= t('Delete') ?></span>
-                        <a <% if (cvIsApproved) { %>style="display:none"<% } %> href="#" data-version-menu-task="delete"
-                        data-version-id="<%-cvID%>"><?= t('Delete') ?></a>
+                        <a href="#" class="dropdown-item disabled" <% if (!cvIsApproved) { %>style="display:none"<% } %>><?=t('Delete')?></a>
+                        <a <% if (cvIsApproved) { %>style="display:none"<% } %> class="dropdown-item" href="#" data-version-menu-task="delete" data-version-id="<%-cvID%>"><?=t('Delete')?></a>
                     </li>
                     <% } %>
                 </ul>
@@ -148,11 +143,9 @@ defined('C5_EXECUTE') or die('Access Denied.');
 
                     var menuItems = $('li.ccm-menu-item-delete');
                     if (menuItems.length == 1) {
-                        menuItems.children('span').show();
-                        menuItems.children('a').hide();
+                        menuItems.children('a:not(.disabled)').hide();
                     } else {
-                        menuItems.children('a').show();
-                        menuItems.children('span').hide();
+                        menuItems.children('a.dropdown-item.disabled').hide();
                     }
                 });
             }
@@ -201,7 +194,9 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 e.preventDefault();
                 e.stopPropagation();
                 var $parent = $(this).parentsUntil('.ccm-panel-page-versions-details').parent();
-                $parent.find('.ccm-panel-page-versions-more-info').css('height', 'auto');
+                var $info = $parent.find('.ccm-panel-page-versions-more-info');
+                $info.css('height','auto');
+                $info.slideToggle();
             });
 
 
@@ -386,7 +381,11 @@ defined('C5_EXECUTE') or die('Access Denied.');
     });
 
 </script>
-
+<style>
+    div.popover.fade.bs-popover-bottom {
+        z-index: 2010;
+    }
+</style>
 
 <section id="ccm-panel-page-versions" class="ccm-ui">
     <header>
@@ -396,7 +395,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
         </a>
         <h5><?=t('Versions')?></h5>
     </header>
-    <table>
+    <table class="table">
         </thead>
         <tbody></tbody>
         <tfoot></tfoot>
