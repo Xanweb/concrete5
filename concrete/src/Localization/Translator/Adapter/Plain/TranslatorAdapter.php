@@ -1,4 +1,5 @@
 <?php
+
 namespace Concrete\Core\Localization\Translator\Adapter\Plain;
 
 use Concrete\Core\Localization\Translator\TranslatorAdapterInterface;
@@ -11,7 +12,9 @@ use Concrete\Core\Localization\Translator\TranslatorAdapterInterface;
  */
 class TranslatorAdapter implements TranslatorAdapterInterface
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $locale;
 
     /**
@@ -48,12 +51,13 @@ class TranslatorAdapter implements TranslatorAdapterInterface
      * the sprintf format in case multiple arguments are passed.
      *
      * @param string $text
+     * @param string ...$args
      *
      * @return string
      */
-    public function translate($text)
+    public function translate($text, ...$args)
     {
-        return $this->formatString($text, array_slice(func_get_args(), 1));
+        return $this->formatString($text, $args);
     }
 
     /**
@@ -70,17 +74,19 @@ class TranslatorAdapter implements TranslatorAdapterInterface
      * @param string $singular
      * @param string $plural
      * @param int $number
+     * @param string ...$args
      *
      * @return string
      */
-    public function translatePlural($singular, $plural, $number)
+    public function translatePlural($singular, $plural, $number, ...$args)
     {
         if (!(is_string($singular) && is_string($plural))) {
             return '';
         }
-        $text = $number == 1 ? $singular : $plural;
 
-        return $this->formatString($text, array_slice(func_get_args(), 2));
+        $text = $number === 1 ? $singular : $plural;
+
+        return $this->formatString($text, [$number] + $args);
     }
 
     /**
@@ -95,12 +101,13 @@ class TranslatorAdapter implements TranslatorAdapterInterface
      *
      * @param string $context
      * @param string $text
+     * @param string ...$args
      *
      * @return string
      */
-    public function translateContext($context, $text)
+    public function translateContext($context, $text, ...$args)
     {
-        return call_user_func_array([$this, 'translate'], array_slice(func_get_args(), 1));
+        return $this->translate($text, ...$args);
     }
 
     /**

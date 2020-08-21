@@ -61,11 +61,12 @@ class TranslatorAdapter implements TranslatorAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function translate($text)
+    public function translate($text, ...$args)
     {
         if (!is_string($text)) {
             return '';
         }
+
         $v = $this->translator->translate($text);
         if (is_array($v)) {
             if (isset($v[0]) && ($v[0] !== '')) {
@@ -75,37 +76,39 @@ class TranslatorAdapter implements TranslatorAdapterInterface
             $text = $v;
         }
 
-        return $this->formatString($text, array_slice(func_get_args(), 1));
+        return $this->formatString($text, $args);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function translatePlural($singular, $plural, $number)
+    public function translatePlural($singular, $plural, $number, ...$args)
     {
         if (!(is_string($singular) && is_string($plural))) {
             return '';
         }
+
         $text = $this->translator->translatePlural($singular, $plural, $number);
 
-        return $this->formatString($text, array_slice(func_get_args(), 2));
+        return $this->formatString($text, [$number] + $args);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function translateContext($context, $text)
+    public function translateContext($context, $text, ...$args)
     {
         if (!(is_string($context) && is_string($text))) {
             return '';
         }
+
         $msgid = $context . "\x04" . $text;
         $msgtxt = $this->translator->translate($msgid);
-        if ($msgtxt != $msgid) {
+        if ($msgtxt !== $msgid) {
             $text = $msgtxt;
         }
 
-        return $this->formatString($text, array_slice(func_get_args(), 2));
+        return $this->formatString($text, ...$args);
     }
 
     /**

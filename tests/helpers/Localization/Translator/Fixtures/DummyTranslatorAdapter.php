@@ -42,7 +42,7 @@ class DummyTranslatorAdapter implements TranslatorAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function translate($text)
+    public function translate($text, ...$args)
     {
         return $text;
     }
@@ -50,15 +50,15 @@ class DummyTranslatorAdapter implements TranslatorAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function translatePlural($singular, $plural, $number)
+    public function translatePlural($singular, $plural, $number, ...$args)
     {
-        return $number == 1 ? $singular : $plural;
+        return $number === 1 ? $singular : $plural;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function translateContext($context, $text)
+    public function translateContext($context, $text, ...$args)
     {
         return $text;
     }

@@ -34,10 +34,11 @@ interface TranslatorAdapterInterface
      * Translate the given text. Returns the translated form of the text.
      *
      * @param string $text
+     * @param string ...$args
      *
      * @return string
      */
-    public function translate($text);
+    public function translate($text, ...$args);
 
     /**
      * Translate the text either into the singular or the plural format
@@ -47,10 +48,11 @@ interface TranslatorAdapterInterface
      * @param string $singular
      * @param string $plural
      * @param int $number
+     * @param string ...$args
      *
      * @return int
      */
-    public function translatePlural($singular, $plural, $number);
+    public function translatePlural($singular, $plural, $number, ...$args);
 
     /**
      * Translate the given text with the given context. Returns the translated
@@ -58,8 +60,9 @@ interface TranslatorAdapterInterface
      *
      * @param string $context
      * @param string $text
+     * @param string ...$args
      *
      * @return string
      */
-    public function translateContext($context, $text);
+    public function translateContext($context, $text, ...$args);
 }
