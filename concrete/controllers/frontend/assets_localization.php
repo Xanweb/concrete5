@@ -22,6 +22,8 @@ var ccmi18n = ' . json_encode([
             'expand' => t('Expand'),
             'loadingText' => t('Loading'),
             'cancel' => t('Cancel'),
+            'choose' => t('Choose'),
+            'clean' => t('Clean'),
             'collapse' => t('Collapse'),
             'error' => t('Error'),
             'errorDetails' => t('Details'),
@@ -135,7 +137,10 @@ var ccmi18n = ' . json_encode([
             'permissionsUpdatedTitle' => t('Permissions Updated'),
             'permissionsUpdatedMessage' => t('The permissions has been successfully updated.'),
             'permissionsOverrideWarning' => t('Changing this setting will affect this page immediately. Are you sure?'),
-            'addAccessEntityDialogTitle' => t('Add Access Entity')
+            'addAccessEntityDialogTitle' => t('Add Access Entity'),
+            'chooseEvent' => t('Choose Event'),
+            'customCssDialogTitle' => t('Custom CSS'),
+            'noBlockSupplied' => t('No block supplied'),
         ]) . ';
 var ccmi18n_editor = ' . json_encode([
             'insertLinkToFile' => t('Insert Link to File'),
@@ -369,6 +374,19 @@ var ccmi18n_helpGuides = ' . json_encode([
                 ['title' => t('Dashboard'), 'text' => t('Anything that isn\'t specific to this page happens here. Manage users, files, reporting data, and site-wide settings.')],
             ],
         ]) . ';
+var ccmi18n_conversations = ' . json_encode([
+    'tooManyFiles' => t('Too many files'),
+    'invalidFileExtension' => t('Invalid file extension'),
+    'maxFileSizeExceeded' => t('Max file size exceeded'),
+    'errorDeletingAttachment' => t('Something went wrong while deleting this attachment, please refresh and try again.'),
+    'confirmRemoveAttachment' => t('Remove this attachment?'),
+    'confirmRemoveMessage' => t('Remove this message? Replies to it will not be removed.'),
+    'confirmMarkAsSpam' => t('Are you sure you want to flag this message as spam?'),
+    'warnCurrentlyEditing' => t('Please complete or cancel the current message editing session before editing this message.'),
+    'unspecifiedErrorOccurred' => t('An unspecified error occurred.'),
+    'errorDeletingMessage' => t('Something went wrong while deleting this message, please refresh and try again.'),
+    'errorFlaggingMessage' => t('Something went wrong while flagging this message, please refresh and try again.'),
+            ]) . ';
 ';
 
         return $this->createJavascriptResponse($content);
